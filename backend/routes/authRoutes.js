@@ -7,8 +7,8 @@ const router = Router();
 
 router.post('/register', registerUser)
 router.post('/login', loginUser)
-router.post('/profile', protect, getUserProfile)
-router.post('/profile', protect, updateUserProfile)
+router.get('/profile', protect, getUserProfile)
+router.put('/profile', protect, updateUserProfile)
 
 router.post("/upload-image", upload.single('image'), (req, res) => {
     if (!req.file) {

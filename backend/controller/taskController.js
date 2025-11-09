@@ -182,7 +182,8 @@ const updateTaskStatus = async (req, res) => {
 
         await task.save();
     } catch (error) {
-        res.status(500).json({ message: "Server error", error: error.message })
+        console.error("Error:", error.message);
+        res.status(500).json({ message: "Server error", error: error.message });
     }
 }
 
@@ -221,7 +222,8 @@ const updateTaskChecklist = async (req, res) => {
         res.status(500).json({ message: " Server error", error: error.message })
 
     } catch (error) {
-
+        console.error("Error:", error.message);
+        res.status(500).json({ message: "Server error", error: error.message });
     }
 }
 
@@ -253,7 +255,7 @@ const getDashboardData = async (req, res) => {
         taskDistribution["All"] = totalTasks;
 
         const taskPriorities = ["Low", "Medium", "High"]
-        const taskPriorityLevelRaw = await Task.aggregrate([{
+        const taskPriorityLevelRaw = await Task.aggregate([{
             $group: {
                 _id: "$priority",
                 count: { $sum: 1 }
@@ -286,7 +288,8 @@ const getDashboardData = async (req, res) => {
 
 
     } catch (error) {
-        res.status(500).json({ message: "Server error", error: error.message })
+        console.error("Error:", error.message);
+        res.status(500).json({ message: "Server error", error: error.message });
     }
 }
 
@@ -347,7 +350,8 @@ const getUserDashboardData = async (req, res) => {
             recentTasks
         })
     } catch (error) {
-
+        console.error("Error:", error.message);
+        res.status(500).json({ message: "Server error", error: error.message });
     }
 }
 

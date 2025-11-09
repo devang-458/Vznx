@@ -1,14 +1,18 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import AuthLayout from '../../components/layouts/AuthLayout'
 import { Link, useNavigate } from 'react-router-dom';
 import { validateEmail } from '../../utils/helper';
 import Input from '../../components/Inputs/Input';
+import axiosInstance from '../../utils/axiosinstance';
+import { API_PATHS } from '../../utils/apiPaths';
+import { UserContext } from '../../context/userContext';
 
 const Login = () => {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const { updateUser } = useContext(UserContext);
 
     const navigate = useNavigate();
 
@@ -28,11 +32,29 @@ const Login = () => {
 
         setError("")
 
+
         try {
-            const reponse = await axios.post(`${API}/api/auth/login`, { email, password });
-            const data = reponse.data
+            const response = await axiosInstance.post(API_PATHS.AUTH.LOGIN, { email, password });
+
+            const { token, role } = response.data;
+
+            if (token) {
+                localStorage.setItem("token", token);
+                updateUser(response.data)
+
+                // redirected based on the role
+                if (role === "admin") {
+                    navigate("/admin/dashboard");
+                } else {
+                    navigate("/user/dashboard")
+                }
+            }
         } catch (error) {
-            console.error("Error", error.message)
+            if (error.response && error.response.data.message) {
+                setError(error.response.data.message);
+            } else {
+                setError("Something went wrong. Please try again")
+            }
         }
 
     }
@@ -49,7 +71,7 @@ const Login = () => {
             <form onSubmit={handleLogin} >
                 <Input
                     value={email}
-                    onChange={(target) => setEmail(target.value)}
+                    onChange={({ target }) => setEmail(target.value)}
                     label="Email Address"
                     placeholder="deekay@gmail.com"
                     type="text"
@@ -57,7 +79,7 @@ const Login = () => {
 
                 <Input
                     value={password}
-                    onChange={(target) => setPassword(target.value)}
+                    onChange={({ target }) => setPassword(target.value)}
                     label="Password"
                     placeholder="nsihgke@koe"
                     type="password"

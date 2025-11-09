@@ -1,7 +1,7 @@
 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const User = require('../models/User.js');
 
 const generateToken = (userId) => {
     return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '7d' })
@@ -28,7 +28,6 @@ const registerUser = async (req, res) => {
         // hash password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
-
         // create new user
         const user = await User.create({
             name,
@@ -60,11 +59,19 @@ const loginUser = async (req, res) => {
             return res.status(401).json({ message: 'Invaild email or password' });
         }
 
+        console.log("heee")
+
         // compare password 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(401).json({ message: 'Invaild email or password' });
         }
+
+        const token = jwt.sign(
+            { id: user._id, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: "7d" }
+        );
 
         res.json({
             _id: user._id,
@@ -75,7 +82,8 @@ const loginUser = async (req, res) => {
             token: token
         })
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message })
+        console.error("Login error:", error.message);
+        res.status(500).json({ message: "Server error", error: error.message });
     }
 };
 

@@ -4,7 +4,9 @@ import {
   BrowserRouter,
   Routes,
   Route,
-  Router
+  Router,
+  Outlet,
+  Navigate
 } from 'react-router-dom'
 import Login from './pages/Auth/Login'
 import Signup from './pages/Auth/Signup'
@@ -14,12 +16,13 @@ import CreateTask from './pages/Admin/CreateTask'
 import PrivateRoute from './routes/PrivateRoute'
 import UserDashboard from './pages/User/userDashboard'
 import ViewTaskDetails from './pages/User/ViewTaskDetails'
+import UserProvider, { UserContext } from './context/userContext'
 
 function App() {
   const [count, setCount] = useState(0)
 
   return (
-    <>
+    <UserProvider>
       <div >
         <Routes>
           <Route path='/login' element={<Login />} />
@@ -40,10 +43,24 @@ function App() {
             <Route path='/user/task-details/:id' element={<ViewTaskDetails />} />
           </Route>
 
+          {/* {default Routes} */}
+          <Route path='/' element={<Root />} />
+
         </Routes>
       </div>
-    </>
+    </UserProvider>
   )
 }
 
 export default App
+
+const Root = () => {
+  const { user, loading } = useContext(UserContext);
+
+  if (loading) return <div>Loading...</div>;
+  if (!user) return <Navigate to="/login" />;
+
+  return user.role === "admin"
+    ? <Navigate to="/admin/dashboard" />
+    : <Navigate to="/user/dashboard" />;
+};
