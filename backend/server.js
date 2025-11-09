@@ -1,8 +1,12 @@
 require("dotenv").config();
 
-import express from "express";
-import cors from "cors";
-import path from "path";
+const  express = require("express");
+const  cors = require("cors");
+const  path = require("path");
+const  connectDB = require('./config/db.js');
+const  authRoutes = require('./routes/authRoutes.js');
+const  authRoutes = require('./routes/userRoutes.js');
+
 
 const app = express();
 
@@ -11,3 +15,23 @@ app.use(cors({
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ['Content-Type' ,'Authorization']
 }))
+
+// Middleware
+app.use(express.json());
+
+(async () => {
+  await connectDB();
+})();
+
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+// app.use('/api/tasks', taskRoutes);
+// app.use('/api/reports', reportRoutes);
+
+// Start Server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    console.log(`Server is running ${PORT}`)
+})
