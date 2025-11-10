@@ -60,7 +60,7 @@ const exportUsersReport = async (req, res) => {
         );
 
         const userTaskMap = {};
-        user.forEach((user) => {
+        users.forEach((user) => {
             userTaskMap[user._id] = {
                 name: user.name,
                 email: user.email,
@@ -71,7 +71,7 @@ const exportUsersReport = async (req, res) => {
             }
         });
 
-        userTaskMap.forEach((task) => {
+        userTasks.forEach((task) => {
             if (task.assignedTo) {
                 task.assignedTo.forEach((assignedUser) => {
                     if (userTaskMap[assignedUser._id]) {

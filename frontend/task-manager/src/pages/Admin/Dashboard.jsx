@@ -17,23 +17,24 @@ import {
 import { LuAArrowDown, LuSquareArrowRight } from 'react-icons/lu';
 import { useNavigate } from 'react-router-dom';
 import TaskListTable from '../../components/TaskListTable';
+import CustomPieChart from '../../components/Charts/CustomPieChart';
+import CustomBarChart from '../../components/Charts/CustomBarChart';
 
-
-
+const COLORS = ["#3B82F6", "#F59E0B", "#06B6D4", "#10B981"];
 const Dashboard = () => {
   useUserAuth();
   const navigate = useNavigate();
-
   const { user } = useContext(UserContext);
 
   const [dashboardData, setDashboardData] = useState(null);
   const [pieChartData, setPieChartData] = useState([]);
   const [barChartData, setBarChartData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Prepare Chart Data
-  const prepareChartData = (date) => {
-    const taskDistribution = data?.taskDistribution || null;
-    const taskPriorityLevels = data?.taskPriorityLevels || null;
+  const prepareChartData = (data) => {
+    const taskDistribution = data?.taskDistribution || {};
+    const taskPriorityLevels = data?.taskPrioritiesLevels || {}; // ✅ Fixed typo
 
     const taskDistributionData = [
       { status: "Pending", count: taskDistribution?.Pending || 0 },
@@ -41,38 +42,61 @@ const Dashboard = () => {
       { status: "Completed", count: taskDistribution?.Completed || 0 },
     ];
 
-    setPieChartData(taskDistributionData);
-
-    const PriorityLevelData = [
+    const priorityLevelData = [
       { priority: "Low", count: taskPriorityLevels?.Low || 0 },
       { priority: "Medium", count: taskPriorityLevels?.Medium || 0 },
-      { priority: "Completed", count: taskPriorityLevels?.Completed || 0 },
+      { priority: "High", count: taskPriorityLevels?.High || 0 },
     ];
-    
-    setPieChartData(PriorityLevelData);
-  } 
 
+    setPieChartData(taskDistributionData);
+    setBarChartData(priorityLevelData);
+  };
 
   const getDashboardData = async () => {
+    if (!user) return; 
+
+    setLoading(true);
+    setError(null);
+
     try {
       const response = await axiosInstance.get(API_PATHS.TASKS.GET_DASHBOARD_DATA);
 
-      if (response.data) {
+      if (response.data?.charts) {
         setDashboardData(response.data);
-        prepareChartData(response.data?.charts)
+        prepareChartData(response.data?.charts);
       }
     } catch (error) {
-      console.log("Error fetching users:", error)
+      console.error("Error fetching dashboard data:", error);
+      setError("Failed to load dashboard data");
+
+      // Set default empty data
+      setDashboardData({
+        charts: { taskDistribution: {}, taskPrioritiesLevels: {} },
+        recentTasks: []
+      });
+    } finally {
+      setLoading(false);
     }
   };
-  // useEffect(() => {
-  //   getDashboardData();
-  // }, [])
 
   const onSeeMore = () => {
-    navigate("/admin/tasks")
+
   }
 
+  useEffect(() => {
+    console.log(localStorage.getItem('token'))
+    if (user) {
+      getDashboardData();
+    }
+  }, [user]); 
+
+  if (loading && !dashboardData) {
+    return <DashboardLayout activeMenu="Dashboard">
+      <div className="flex items-center justify-center h-64">
+        <p>Loading dashboard...</p>
+      </div>
+    </DashboardLayout>;
+  }
 
   return (<DashboardLayout activeMenu="Dashboard">
     <div className='card my-5'>
@@ -119,6 +143,29 @@ const Dashboard = () => {
       </div>
 
       <div className='grid grid-cols-1 md:grid-cols-2 gap-6 my-4 md:my-6'>
+
+        <div>
+          <div className='card'>
+            <div className='flex items-center justify-between'>
+              <h5 className='font-medium'>Task Distribution</h5>
+            </div>
+            <CustomPieChart data={pieChartData}
+              label="Total Balance"
+              colors={COLORS}
+            />
+          </div>
+        </div>
+
+        <div>
+          <div className='card'>
+            <div className='flex items-center justify-between'>
+              <h5 className='font-medium'>Task Priority Levels</h5>
+            </div>
+            <CustomBarChart data={barChartData}
+            />
+          </div>
+        </div>
+
         <div className='md:col-span-2'>
           <div className='card'>
             <div className='flex items-center justify-between'>

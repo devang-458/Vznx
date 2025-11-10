@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 import './App.css'
 import {
   BrowserRouter,
@@ -17,6 +17,7 @@ import PrivateRoute from './routes/PrivateRoute'
 import UserDashboard from './pages/User/userDashboard'
 import ViewTaskDetails from './pages/User/ViewTaskDetails'
 import UserProvider, { UserContext } from './context/userContext'
+import MyTasks from './pages/User/MyTasks'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -39,7 +40,7 @@ function App() {
           {/* { User Routes } */}
           <Route element={<PrivateRoute allowedRoles={['user']} />} >
             <Route path='/user/dashboard' element={<UserDashboard />} />
-            <Route path='/user/tasks' element={<ManageTasks />} />
+            <Route path='/user/users' element={<MyTasks/>} />
             <Route path='/user/task-details/:id' element={<ViewTaskDetails />} />
           </Route>
 

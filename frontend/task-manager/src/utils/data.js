@@ -68,7 +68,7 @@ export const SIDE_MENU_USER_DATA = [
         icons: LuLogOut,
         path: 'logout'
     },
-    
+
 ]
 
 export const PRIORITY_DATA = [
