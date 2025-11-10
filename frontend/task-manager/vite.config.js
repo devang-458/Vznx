@@ -6,5 +6,5 @@ export default defineConfig({
     react(),
     tailwindcss()
   ],
-  base:process.env.VITE_BASE_PATH || "/Vznx"
+  base:process.env.VITE_BASE_PATH || ""
 })
