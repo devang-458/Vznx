@@ -18,6 +18,7 @@ import UserDashboard from './pages/User/userDashboard'
 import ViewTaskDetails from './pages/User/ViewTaskDetails'
 import UserProvider, { UserContext } from './context/userContext'
 import MyTasks from './pages/User/MyTasks'
+import ManageUsers from './pages/Admin/ManageUsers'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -32,16 +33,16 @@ function App() {
           {/* { Admin Routes } */}
           <Route element={<PrivateRoute allowedRoles={['admin']} />}>
             <Route path='/admin/dashboard' element={<Dashboard />} />
-            <Route path='/admin/tasks' element={<ManageTasks />} />
+            <Route path='/admin/tasks' element={< ManageTasks />} />
             <Route path='/admin/create-task' element={<CreateTask />} />
-            <Route path='/admin/users' element={< ManageTasks />} />
+            <Route path='/admin/users' element={< ManageUsers />} />
           </Route>
 
           {/* { User Routes } */}
-          <Route element={<PrivateRoute allowedRoles={['user']} />} >
+          <Route element={<PrivateRoute allowedRoles={['user', 'member']} />} >
             <Route path='/user/dashboard' element={<UserDashboard />} />
-            <Route path='/user/users' element={<MyTasks/>} />
-            <Route path='/user/task-details/:id' element={<ViewTaskDetails />} />
+            <Route path='/user/tasks' element={<MyTasks />} />
+            <Route path='/user/tasks/:id' element={<ViewTaskDetails />} />
           </Route>
 
           {/* {default Routes} */}

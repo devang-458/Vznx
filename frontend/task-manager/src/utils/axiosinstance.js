@@ -53,7 +53,7 @@ axiosInstance.interceptors.response.use(
                 // Only redirect if we're not already on login/signup
                 const currentPath = window.location.pathname;
                 if (!['/login', '/signup'].includes(currentPath)) {
-                    console.error("❌ Unauthorized. Redirecting to login...");
+                    console.error(" Unauthorized. Redirecting to login...");
                     localStorage.removeItem('token'); // Clear invalid token
                     window.location.href = "/login";
                 }

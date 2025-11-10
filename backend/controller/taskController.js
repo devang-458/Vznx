@@ -1,58 +1,54 @@
 const Task = require("../models/Task.js")
 
+
 const getTasks = async (req, res) => {
     try {
         const { status } = req.query;
-        let filter = {};
 
+        // For admin, no filter on assignedTo
+        // For regular users/members, filter by their ID in assignedTo
+        const baseRoleFilter = req.user.role === 'admin'
+            ? {}
+            : { assignedTo: req.user._id };
+
+        let taskListFilter = { ...baseRoleFilter };
         if (status) {
-            filter.status = status;
+            taskListFilter.status = status;
         }
 
-        let tasks;
+        // Fetch tasks with populated assignedTo field
+        let tasks = await Task.find(taskListFilter)
+            .populate("assignedTo", "name email profileImageUrl")
+            .populate("createdBy", "name email")
+            .sort({ createdAt: -1 });
 
-        if (req.user.role === 'admin') {
-            tasks = await Task.find(filter).populate(
-                "assignedTo",
-                "name email profileImageUrl"
-            )
-        } else {
-            tasks = await Task.find({ ...filter, assignedTo: req.user._id }).populate(
-                "assignedTo",
-                "name email profileImageUrl"
-            )
-        }
-
+        // Calculate todo completion for each task
         tasks = await Promise.all(
             tasks.map(async (task) => {
                 const completedCount = task.todoChecklist.filter(
                     (item) => item.completed
                 ).length;
-                return { ...task._doc, completedTodoCount: completedCount }
+                return {
+                    ...task.toObject(),
+                    completedTodoCount: completedCount
+                };
             })
-        )
-
-        const allTasks = await Task.countDocuments(
-            req.user.role === 'admin' ? {} : { assignedTo: req.user._id }
         );
 
+        // Get task counts for status summary
+        const allTasks = await Task.countDocuments(baseRoleFilter);
         const pendingTasks = await Task.countDocuments({
-            ...filter,
-            status: 'Pending',
-            ...(req.user.role !== 'admin' && { assignedTo: req.user._id })
-        })
-
+            ...baseRoleFilter,
+            status: 'Pending'
+        });
         const inProgressTasks = await Task.countDocuments({
-            ...filter,
-            status: 'In Progress',
-            ...(req.user.role !== 'admin' && { assignedTo: req.user._id })
-        })
-
+            ...baseRoleFilter,
+            status: 'In Progress'
+        });
         const completedTasks = await Task.countDocuments({
-            ...filter,
-            status: 'Completed',
-            ...(req.user.role !== 'admin' && { assignedTo: req.user._id })
-        })
+            ...baseRoleFilter,
+            status: 'Completed'
+        });
 
         res.json({
             tasks,
@@ -62,14 +58,18 @@ const getTasks = async (req, res) => {
                 inProgressTasks,
                 completedTasks
             }
-        })
+        });
 
     } catch (error) {
-
+        console.error("Error fetching tasks:", error);
+        res.status(500).json({
+            message: "Server error fetching tasks",
+            error: error.message
+        });
     }
-}
+};
 
-const getTaskById = async () => {
+const getTaskById = async (req, res) => {
     try {
         const task = await Task.findById(req.params.id).populate(
             "assignedTo",
@@ -219,8 +219,7 @@ const updateTaskChecklist = async (req, res) => {
         await task.save();
 
         const updatedTask = await Task.findById(req.params.id).populate("assignedTo", "name email profileImageUrl")
-
-        res.status(500).json({ message: " Server error", error: error.message })
+        res.status(200).json(updatedTask)
 
     } catch (error) {
         console.error("Error:", error.message);
@@ -255,7 +254,7 @@ const getDashboardData = async (req, res) => {
 
         taskDistribution["All"] = totalTasks;
 
-        const taskPriorities = ["Low", "Medium", "High"];  
+        const taskPriorities = ["Low", "Medium", "High"];
         const taskPriorityLevelRaw = await Task.aggregate([{
             $group: {
                 _id: "$priority",
@@ -263,7 +262,7 @@ const getDashboardData = async (req, res) => {
             }
         }]);
 
-        const taskPriorityLevels = taskPriorities.reduce((acc, priority) => {  
+        const taskPriorityLevels = taskPriorities.reduce((acc, priority) => {
             acc[priority] = taskPriorityLevelRaw.find((item) => item._id === priority)?.count || 0;
             return acc;
         }, {});
@@ -271,7 +270,7 @@ const getDashboardData = async (req, res) => {
         const recentTasks = await Task.find()
             .sort({ createdAt: -1 })
             .limit(10)
-            .select("title status priority dueDate createdAt");  
+            .select("title status priority dueDate createdAt");
         console.log("Dashboard data prepared:", {
             taskDistribution,
             taskPriorityLevels
@@ -286,7 +285,7 @@ const getDashboardData = async (req, res) => {
             },
             charts: {
                 taskDistribution,
-                taskPriorityLevels 
+                taskPriorityLevels
             },
             recentTasks
         });
@@ -324,13 +323,13 @@ const getUserDashboardData = async (req, res) => {
 
         taskDistribution["All"] = totalTasks;
 
-        const taskPriorities = ["Low", "Medium", "High"]; 
+        const taskPriorities = ["Low", "Medium", "High"];
         const taskPriorityLevelRaw = await Task.aggregate([
             { $match: { assignedTo: userId } },
             { $group: { _id: "$priority", count: { $sum: 1 } } }
         ]);
 
-        const taskPriorityLevels = taskPriorities.reduce((acc, priority) => {  
+        const taskPriorityLevels = taskPriorities.reduce((acc, priority) => {
             acc[priority] = taskPriorityLevelRaw.find((item) => item._id === priority)?.count || 0;
             return acc;
         }, {});
@@ -338,7 +337,7 @@ const getUserDashboardData = async (req, res) => {
         const recentTasks = await Task.find({ assignedTo: userId })
             .sort({ createdAt: -1 })
             .limit(10)
-            .select('title status priority dueDate createdAt');  
+            .select('title status priority dueDate createdAt');
 
         console.log("User dashboard data prepared:", {
             taskDistribution,

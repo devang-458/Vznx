@@ -18,6 +18,8 @@ const Signup = () => {
   const [adminInviteToken, setAdminInviteToken] = useState("");
   const { updateUser } = useContext(UserContext);
 
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
 
@@ -43,7 +45,9 @@ const Signup = () => {
       return;
     }
 
-    setError("")
+    setError("");
+
+    setLoading(true);
 
     try {
 
@@ -84,6 +88,8 @@ const Signup = () => {
       } else {
         setError("Something went wrong. Please try again")
       }
+    } finally {
+      setLoading(false);
     }
 
   }
@@ -135,8 +141,19 @@ const Signup = () => {
 
           {error && <p className='text-red-500 text-xs pb-2.5'>{error}</p>}
 
-          <button type='submit' className='btn-primary'>
-            SIGN UP
+          <button
+            type='submit'
+            className='btn-primary'
+            disabled={loading}
+          >
+            {loading ? (
+              <div className="flex items-center justify-center">
+                <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                SIGNING UP...
+              </div>
+            ) : (
+              "SIGN UP"
+            )}
           </button>
 
           <p className='text-[13px] text-slate-800 mt-3 font-stack'>

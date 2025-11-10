@@ -46,7 +46,7 @@ const ManageTasks = () => {
       setFilteredTasks(response.data.tasks || []);
       setStatusSummary(response.data.statusSummary || statusSummary);
     } catch (error) {
-      console.error('❌ Error fetching tasks:', error);
+      console.error(' Error fetching tasks:', error);
     } finally {
       setLoading(false);
     }
@@ -54,7 +54,7 @@ const ManageTasks = () => {
 
   useEffect(() => {
     if (user) {
-      fetchTasks();
+      fetchTasks(statusFilter);
     }
   }, [user]);
 
@@ -77,7 +77,7 @@ const ManageTasks = () => {
       link.click();
       link.remove();
     } catch (error) {
-      console.error('❌ Error exporting tasks:', error);
+      console.error(' Error exporting tasks:', error);
       alert('Failed to export tasks');
     }
   };
@@ -94,7 +94,7 @@ const ManageTasks = () => {
       fetchTasks(statusFilter);
       alert('Task deleted successfully');
     } catch (error) {
-      console.error('❌ Error deleting task:', error);
+      console.error(' Error deleting task:', error);
       alert('Failed to delete task');
     }
   };

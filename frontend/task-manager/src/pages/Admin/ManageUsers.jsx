@@ -35,7 +35,7 @@ const ManageUsers = () => {
       console.log('✅ Users fetched:', response.data);
       setUsers(response.data || []);
     } catch (error) {
-      console.error('❌ Error fetching users:', error);
+      console.error(' Error fetching users:', error);
       alert('Failed to load users');
     } finally {
       setLoading(false);
@@ -57,7 +57,7 @@ const ManageUsers = () => {
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('❌ Error exporting users:', error);
+      console.error(' Error exporting users:', error);
       alert('Failed to export users');
     }
   };
@@ -138,7 +138,7 @@ const ManageUsers = () => {
       handleCloseModal();
       fetchUsers();
     } catch (error) {
-      console.error('❌ Error saving user:', error);
+      console.error(' Error saving user:', error);
       alert(error.response?.data?.message || 'Failed to save user');
     }
   };
@@ -151,7 +151,7 @@ const ManageUsers = () => {
       alert('User deleted successfully');
       fetchUsers();
     } catch (error) {
-      console.error('❌ Error deleting user:', error);
+      console.error(' Error deleting user:', error);
       alert('Failed to delete user');
     }
   };

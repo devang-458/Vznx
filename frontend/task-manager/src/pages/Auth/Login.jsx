@@ -13,6 +13,7 @@ const Login = () => {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const { updateUser } = useContext(UserContext);
+    const [loading, setLoading] = useState(false);
 
     const navigate = useNavigate();
 
@@ -32,11 +33,14 @@ const Login = () => {
 
         setError("")
 
+        setLoading(true);
 
         try {
             const response = await axiosInstance.post(API_PATHS.AUTH.LOGIN, { email, password });
 
             const { token, role } = response.data;
+
+            console.log("role", role)
 
             if (token) {
                 localStorage.setItem("token", token);
@@ -46,15 +50,19 @@ const Login = () => {
                 if (role === "admin") {
                     navigate("/admin/dashboard");
                 } else {
-                    navigate("/user/dashboard")
+                    console.log("hi")
+                    navigate("/user/dashboard");
                 }
             }
-        } catch (error) {
+        }
+        catch (error) {
             if (error.response && error.response.data.message) {
                 setError(error.response.data.message);
             } else {
                 setError("Something went wrong. Please try again")
             }
+        } finally {
+            setLoading(false);
         }
 
     }
@@ -87,7 +95,20 @@ const Login = () => {
 
                 {error && <p className='text-red-500 text-xs pb-2.5'>{error}</p>}
 
-                <button className='btn-primary' type='submit'>LOGIN</button>
+                <button
+                    className='btn-primary'
+                    type='submit'
+                    disabled={loading} 
+                >
+                    {loading ? (
+                        <div className="flex items-center justify-center">
+                            <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            LOGGING IN...
+                        </div>
+                    ) : (
+                        "LOGIN"
+                    )}
+                </button>
 
                 <p className='text-[13px] text-slate-800 mt-3 font-stack'>
                     Don't have an account?{" "}

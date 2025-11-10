@@ -36,7 +36,7 @@ const CreateTask = () => {
       const response = await axiosInstance.get(API_PATHS.USERS.GET_ALL_USERS);
       setUsers(response.data || []);
     } catch (error) {
-      console.error('❌ Error fetching users:', error);
+      console.error(' Error fetching users:', error);
     }
   };
 
@@ -105,7 +105,7 @@ const CreateTask = () => {
       alert('Task created successfully!');
       navigate('/admin/tasks');
     } catch (error) {
-      console.error('❌ Error creating task:', error);
+      console.error(' Error creating task:', error);
       setError(error.response?.data?.message || 'Failed to create task');
     } finally {
       setLoading(false);
