@@ -7,7 +7,6 @@ import { API_PATHS } from '../../utils/apiPaths';
 import { useNavigate } from 'react-router-dom';
 import { IoFilter, IoEye } from 'react-icons/io5';
 import { STATUS_DATA } from '../../utils/data';
-import InfoCard from '../../components/Cards/InfoCard';
 import {
   IoStatsChart,
   IoListCircle,
@@ -16,6 +15,7 @@ import {
 } from 'react-icons/io5';
 import { addThousandsSeparator } from '../../utils/helper';
 import TaskCard from '../../components/Cards/TaskCard';
+import InfoCard from "../../components/Cards/InfoCard";
 
 const MyTasks = () => {
   useUserAuth();
