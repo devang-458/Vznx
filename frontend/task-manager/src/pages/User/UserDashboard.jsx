@@ -5,7 +5,7 @@ import { UserContext } from '../../context/userContext';
 import axiosInstance from '../../utils/axiosinstance';
 import { API_PATHS } from '../../utils/apiPaths';
 import moment from 'moment';
-import InfoCard from '../../components/Cards/InfoCard';
+import InfoCard from '../../components/InfoCard';
 import { addThousandsSeparator } from '../../utils/helper';
 import {
   IoStatsChart,

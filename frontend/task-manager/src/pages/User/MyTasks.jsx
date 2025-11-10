@@ -15,7 +15,7 @@ import {
 } from 'react-icons/io5';
 import { addThousandsSeparator } from '../../utils/helper';
 import TaskCard from '../../components/Cards/TaskCard';
-import InfoCard from "../../components/Cards/InfoCard";
+import InfoCard from "../../components/InfoCard";
 
 const MyTasks = () => {
   useUserAuth();
