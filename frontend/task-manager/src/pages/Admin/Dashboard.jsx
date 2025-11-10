@@ -6,7 +6,7 @@ import axiosInstance from '../../utils/axiosinstance';
 import { API_PATHS } from '../../utils/apiPaths';
 import moment from "moment"
 import { IoMdCard } from "react-icons/io";
-import InfoCard from '../../components/Cards/infoCard';
+import InfoCard from '../../components/Cards/InfoCard';
 import { addThousandsSeparator } from '../../utils/helper';
 import {
   IoStatsChart,

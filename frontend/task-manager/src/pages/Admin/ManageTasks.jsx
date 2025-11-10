@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { IoAddCircle, IoFilter, IoDownload } from 'react-icons/io5';
 import { STATUS_DATA } from '../../utils/data';
 import TaskListTable from '../../components/TaskListTable';
-import InfoCard from '../../components/InfoCard';
+import InfoCard from '../../components/Cards/InfoCard';
 import { 
   IoStatsChart, 
   IoListCircle, 
