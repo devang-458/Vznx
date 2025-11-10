@@ -7,7 +7,7 @@ import { API_PATHS } from '../../utils/apiPaths';
 import { useNavigate } from 'react-router-dom';
 import { IoFilter, IoEye } from 'react-icons/io5';
 import { STATUS_DATA } from '../../utils/data';
-import InfoCard from '../../components/Cards/infoCard';
+import InfoCard from '../../components/Cards/InfoCard';
 import {
   IoStatsChart,
   IoListCircle,
