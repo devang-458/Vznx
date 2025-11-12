@@ -4,7 +4,7 @@ import { IoPencil, IoTrash } from 'react-icons/io5';
 import { Link } from 'react-router-dom';
 
 // Assuming props are { tableData, onDelete, showActions }
-const TaskListTable = ({ tableData, onDelete, showActions }) => { 
+const TaskListTable = ({ tableData, onDelete, showActions, userRole }) => {
     const getStatusBadgeColor = (status) => {
         switch (status) {
             case 'Completed': return 'bg-green-100 text-green-500 border border-green-200';
@@ -22,7 +22,7 @@ const TaskListTable = ({ tableData, onDelete, showActions }) => {
             default: return 'bg-gray-100 text-gray-500 border border-gray-200';
         }
     }
-    
+
     return (
         <div className='overflow-x-auto p-0 rounded-lg mt-3'>
             <table className='min-w-full divide-y divide-gray-200'>
@@ -39,9 +39,9 @@ const TaskListTable = ({ tableData, onDelete, showActions }) => {
                 </thead>
                 <tbody className='bg-white divide-y divide-gray-200'>
                     {/* FIX: Using implicit return () for map function */}
-                    {tableData.map((task) => ( 
+                    {tableData.map((task) => (
                         <tr key={task._id} className='hover:bg-gray-50'>
-                            <td className='py-3 px-4 text-gray-700 text-sm line-clamp-1 max-w-xs'> 
+                            <td className='py-3 px-4 text-gray-700 text-sm line-clamp-1 max-w-xs'>
                                 {task.title}
                             </td>
                             {/* FIX: Using <td> tag */}
@@ -60,21 +60,24 @@ const TaskListTable = ({ tableData, onDelete, showActions }) => {
                             <td className="py-3 px-4 text-gray-700 text-xs text-nowrap hidden md:table-cell">
                                 {task.createdAt ? moment(task.createdAt).format('Do MMM YYYY') : 'N/A'}
                             </td>
-                            
+
                             {showActions && (
                                 <td className="py-3 px-4 text-sm text-gray-500 whitespace-nowrap">
                                     <div className='flex items-center space-x-2'>
                                         {/* Edit Link: Navigates to the CreateTask route, passing task ID as a query parameter for update */}
-                                        <Link 
-                                            to={`/admin/create-task?taskId=${task._id}`} 
+                                        <Link
+                                            to={userRole === 'admin'
+                                                ? `/admin/create-task?taskId=${task._id}`
+                                                : `/user/tasks/${task._id}`  
+                                            }
                                             className='text-blue-600 hover:text-blue-900'
                                             title='Edit Task'
                                         >
                                             <IoPencil className='w-4 h-4' />
                                         </Link>
-                                        
+
                                         {/* Delete Button: Only shown if the onDelete function is passed (i.e., for Admin) */}
-                                        {onDelete && (
+                                        {onDelete && userRole === 'admin' && (
                                             <button
                                                 onClick={() => onDelete(task._id)}
                                                 className='text-red-600 hover:text-red-900'

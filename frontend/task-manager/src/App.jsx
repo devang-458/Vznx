@@ -43,6 +43,8 @@ function App() {
             <Route path='/user/dashboard' element={<UserDashboard />} />
             <Route path='/user/tasks' element={<MyTasks />} />
             <Route path='/user/tasks/:id' element={<ViewTaskDetails />} />
+            <Route path='/user/create-task' element={<CreateTask />} />
+            <Route path='/user/users' element={<ManageUsers />} />
           </Route>
 
           {/* {default Routes} */}
