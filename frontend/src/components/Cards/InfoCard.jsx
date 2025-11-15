@@ -4,7 +4,7 @@ const InfoCard = ({ icon, label, value, color }) => {
   return (
     <div className="flex flex-col items-center justify-center text-center">
       <div
-        className={`flex items-center justify-center w-10 h-10 md:w-12 md:h-12 ${color} rounded-full`}
+        className={`flex items-center justify-center w-8 h-8 md:w-10 md:h-10 ${color} rounded-full`}
       >
         {icon && <span className="text-white text-lg">{icon}</span>}
       </div>

@@ -159,9 +159,9 @@ const ViewTaskDetails = () => {
 
   return (
     <DashboardLayout activeMenu="Manage Tasks">
-      <div className="my-5 max-w-4xl mx-auto">
+      <div className="my-5 max-w-4xl mx-auto bg-black">
         {/* Header */}
-        <div className="mb-4">
+        <div className="mb-4 ">
           <button
             onClick={() => navigate(-1)}
             className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors font-medium flex items-center gap-2 mb-4"

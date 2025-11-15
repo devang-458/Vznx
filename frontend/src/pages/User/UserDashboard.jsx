@@ -13,7 +13,7 @@ import {
   IoHourglass,
   IoCheckmarkCircle
 } from 'react-icons/io5'
-import { LuSquareArrowRight, LuCirclePlus } from 'react-icons/lu'
+import { LuSquareArrowRight, LuCirclePlus, LuMessageCircle } from 'react-icons/lu'
 import { FiZap } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
 import TaskListTable from '../../components/TaskListTable'
@@ -79,6 +79,7 @@ const UserDashboard = () => {
       { name: 'Medium', value: prio.Medium || prio.medium || prio.mid || 0 },
       { name: 'High', value: prio.High || prio.high || prio.highCount || 0 }
     ]
+    console.log("👉 taskDistributionData:", taskDistributionData);
 
     setPieChartData(taskDistributionData)
     setBarChartData(priorityLevelData)
@@ -167,7 +168,7 @@ const UserDashboard = () => {
 
   return (
     <DashboardLayout activeMenu="Dashboard">
-      <div className="min-h-screen bg-gray-50 p-6 md:p-10">
+      <div className="min-h-screen bg-gray-50 p-4 md:p-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
             <h1 className="text-2xl font-semibold">Welcome back{user?.name ? `, ${user.name.split(' ')[0]}` : ''} 👋</h1>
@@ -181,8 +182,9 @@ const UserDashboard = () => {
             )}
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-white border rounded-full px-3 py-1 shadow-sm">
+          <div className="flex items-center gap-2 flex-nowrap">
+
+            <div className="flex items-center gap-2  bg-white border rounded-full px-3 py-1 shadow-sm">
               <select className="text-sm outline-none" value={filter.status} onChange={(e) => setFilter(f => ({ ...f, status: e.target.value }))}>
                 <option value="all">All statuses</option>
                 <option value="Pending">Pending</option>
@@ -191,11 +193,13 @@ const UserDashboard = () => {
               </select>
               <label className="ml-2 text-sm text-gray-600 flex items-center gap-2">
                 <input type="checkbox" checked={filter.mineOnly} onChange={(e) => setFilter(f => ({ ...f, mineOnly: e.target.checked }))} />
-                <span className="text-xs">My tasks only</span>
+                <span className="text-xs p-1.5 flex flex-row w-22">My tasks only</span>
               </label>
             </div>
-
-            <button className="btn-primary" onClick={createTask}>+ New Task</button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button className="border-black border p-2.5 rounded-full " onClick={createTask}><LuMessageCircle  /></button>
+              <button className="btn-primary" onClick={createTask}>+ New Task</button>
+            </div>
           </div>
         </div>
 

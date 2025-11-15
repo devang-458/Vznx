@@ -180,9 +180,14 @@ export default function UserSettings() {
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
-            <h1 className="text-2xl font-bold text-white">Settings</h1>
-            <p className="text-blue-100 text-sm mt-1">Manage your account and preferences</p>
+          <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex flex-row justify-between">
+            <div className=''>
+              <h1 className="text-2xl font-bold text-white">Settings</h1>
+              <p className="text-blue-100 text-sm mt-1">Manage your account and preferences</p>
+            </div>
+            <div>
+              <button>hi</button>
+            </div>
           </div>
 
           {/* Tabs */}
@@ -192,11 +197,10 @@ export default function UserSettings() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-3 font-medium text-sm whitespace-nowrap border-b-2 transition ${
-                    activeTab === tab.id
-                      ? 'border-blue-600 text-blue-600'
-                      : 'border-transparent text-gray-600 hover:text-gray-900'
-                  }`}
+                  className={`px-4 py-3 font-medium text-sm whitespace-nowrap border-b-2 transition ${activeTab === tab.id
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                    }`}
                 >
                   {tab.label}
                 </button>
@@ -207,11 +211,10 @@ export default function UserSettings() {
           {/* Message */}
           {message && (
             <div
-              className={`px-6 py-3 font-medium ${
-                messageType === 'error'
-                  ? 'bg-red-50 text-red-700 border-l-4 border-red-400'
-                  : 'bg-green-50 text-green-700 border-l-4 border-green-400'
-              }`}
+              className={`px-6 py-3 font-medium ${messageType === 'error'
+                ? 'bg-red-50 text-red-700 border-l-4 border-red-400'
+                : 'bg-green-50 text-green-700 border-l-4 border-green-400'
+                }`}
             >
               {message}
             </div>
@@ -223,7 +226,7 @@ export default function UserSettings() {
             {activeTab === 'profile' && (
               <form onSubmit={handleUpdateProfile} className="space-y-4">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Profile Settings</h2>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Full Name
@@ -266,7 +269,7 @@ export default function UserSettings() {
             {activeTab === 'security' && (
               <form onSubmit={handleUpdatePassword} className="space-y-4">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Change Password</h2>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Current Password
@@ -322,7 +325,7 @@ export default function UserSettings() {
             {activeTab === 'notifications' && (
               <form onSubmit={handleUpdatePreferences} className="space-y-4">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Notification Settings</h2>
-                
+
                 <div className="space-y-3 pb-4 border-b border-gray-200">
                   <p className="text-sm font-medium text-gray-700">Notification Channels</p>
                   <label className="flex items-center cursor-pointer">
@@ -378,7 +381,7 @@ export default function UserSettings() {
             {activeTab === 'preferences' && (
               <form onSubmit={handleUpdatePreferences} className="space-y-4">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">App Preferences</h2>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Theme</label>
                   <select
@@ -470,7 +473,7 @@ export default function UserSettings() {
             {activeTab === 'privacy' && (
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Privacy & Data</h2>
-                
+
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
                   <h3 className="font-medium text-gray-900 mb-2">Export Your Data</h3>
                   <p className="text-sm text-gray-600 mb-4">Download all your data including tasks, comments, and preferences in JSON format for backup or migration.</p>

@@ -173,7 +173,7 @@ const CreateTask = () => {
 
   return (
     <DashboardLayout activeMenu="Create Task">
-      <div className="min-h-0 bg-gray-50 p-6">
+      <div className="min-h-0 bg-gray-50 p-4 md:p-6">
 
         <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-xl p-10 border border-gray-100 space-y-10">
 
