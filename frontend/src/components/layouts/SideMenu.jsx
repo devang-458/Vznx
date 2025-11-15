@@ -2,6 +2,8 @@ import React, { useContext, useEffect, useState } from 'react';
 import { UserContext } from '../../context/userContext';
 import { useNavigate } from 'react-router-dom';
 import { SIDE_MENU_DATA, SIDE_MENU_USER_DATA } from '../../utils/data';
+import image from "../../assets/images/user.png";
+
 
 const SideMenu = ({ activeMenu }) => {
   const { user, clearUser } = useContext(UserContext);
@@ -29,12 +31,12 @@ const SideMenu = ({ activeMenu }) => {
   }, [user]);
 
   return (
-    <div className="w-64 h-[calc(100vh-61px)] bg-white border-r border-gray-200/50 sticky top-16 z-20 flex flex-col overflow-hidden">
+    <div className="w-64  bg-white border-r border-gray-200/50 sticky  z-20 flex flex-col overflow-hidden">
       {/* Profile Section */}
-      <div className="flex flex-col items-center justify-center mb-7 pt-5 flex-shrink-0">
+      <div className="flex flex-col items-center justify-center mb-7 pt-5 shrink-0">
         <div className="relative ">
           <img
-            src={user?.profileImageUrl || '/default-avatar.png'}
+            src={user[0]?.profileImageUrl ? user.profileImageUrl : image}
             alt="Profile"
             className="w-20 h-20  bg-slate-400 rounded-full object-cover"
           />

@@ -54,7 +54,7 @@ const CustomBarChart = ({ data }) => {
             <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={data}>
                     <CartesianGrid stroke='none' />
-                    <XAxis dataKey="priority"
+                    <XAxis dataKey={data[0]?.name ? "name" : "priority"}
                         tick={{ fontSize: 12, fill: "#555" }}
                         stroke='none'
                     />
@@ -63,7 +63,7 @@ const CustomBarChart = ({ data }) => {
                     />
 
                     <Tooltip content={CustomTooltip} curso={{ file: 'trasparent' }} />
-                    <Bar dataKey="count">
+                    <Bar dataKey={data[0]?.value ? "value" : "count"} >
                         {data.map((entry, index) => (
                             <Cell key={index} fill={getBarColor(entry)} />
                         )

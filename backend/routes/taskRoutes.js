@@ -10,11 +10,14 @@ const {
     updateTaskStatus,
     updateTaskChecklist,
     getDashboardData,
-    getUserDashboardData
+    getUserDashboardData,
+    uploadAttachment
 } = require("../controller/taskController")
+const upload = require("../middleware/uploadMiddleware");
 
 const router = express.Router();
 
+router.post('/upload-attachment', protect, upload.single('attachment'), uploadAttachment);
 router.get('/dashboard-data', protect, adminOnly, getDashboardData);
 router.get('/user-dashboard-data', protect, getUserDashboardData);
 router.get('/', protect, getTasks);

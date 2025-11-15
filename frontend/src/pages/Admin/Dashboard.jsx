@@ -53,7 +53,7 @@ const Dashboard = () => {
 
   const prepareChartData = (data) => {
     const taskDistribution = data?.charts?.taskDistribution || {};
-    const taskPriorityLevels = data?.charts?.taskPrioritiesLevels || {};
+    const taskPriorityLevels = data?.charts?.taskPriorityLevels || {};
 
     const taskDistributionData = [
       { name: "Pending", value: taskDistribution?.Pending || 0 },
@@ -79,25 +79,27 @@ const Dashboard = () => {
 
     try {
       const response = await axiosInstance.get(API_PATHS.TASKS.GET_DASHBOARD_DATA);
+      console.log(response);
+
 
       if (response?.data) {
         // adapt older API shape if necessary
         const normalized = {
           charts: response.data.charts || response.data?.charts || {
             taskDistribution: response.data.taskDistribution || {},
-            taskPrioritiesLevels: response.data.taskPrioritiesLevels || {}
+            taskPriorityLevels: response.data.taskPriorityLevels || {}
           },
           recentTasks: response.data.recentTasks || response.data.tasks || []
         }
         setDashboardData(normalized);
         prepareChartData(normalized);
       } else {
-        setDashboardData({ charts: { taskDistribution: {}, taskPrioritiesLevels: {} }, recentTasks: [] });
+        setDashboardData({ charts: { taskDistribution: {}, taskPriorityLevels: {} }, recentTasks: [] });
       }
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
       setError('Failed to load dashboard data.');
-      setDashboardData({ charts: { taskDistribution: {}, taskPrioritiesLevels: {} }, recentTasks: [] });
+      setDashboardData({ charts: { taskDistribution: {}, taskPriorityLevels: {} }, recentTasks: [] });
     } finally {
       setLoading(false);
     }

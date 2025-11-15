@@ -1,350 +1,410 @@
-# Quick Reference Guide - AI Task Manager
+# ⚡ Quick Reference - New Features
 
-## 🎯 Start Here
+## Components to Import
 
-### Access Points
-| Feature | URL | Requires |
-|---------|-----|----------|
-| Admin Dashboard | http://localhost:5174/admin/dashboard | Admin role |
-| AI Dashboard | http://localhost:5174/admin/ai-dashboard | Admin role |
-| Task Insights | http://localhost:5174/admin/insights | Admin role |
-| Create Task (Enhanced) | http://localhost:5174/admin/create-task | Admin role |
-| Bulk Operations | http://localhost:5174/admin/bulk-operations | Admin role |
-| User Dashboard | http://localhost:5174/user/dashboard | User role |
-| My Tasks | http://localhost:5174/user/tasks | User role |
-
-### Default Login Credentials (if available)
-```
-Admin:
-  Email: admin@taskmanager.com
-  Password: (check backend config)
-
-User:
-  Email: user@taskmanager.com
-  Password: (check backend config)
-```
-
----
-
-## 🧠 AI Dashboard Quick Guide
-
-### What's on the Dashboard?
-1. **4 Insight Cards** (Top)
-   - Team Velocity: Completion percentage
-   - Priority Distribution: Task breakdown
-   - Overdue Tasks: Count with warnings
-   - Current Workload: Active task count
-
-2. **Predictions** (Middle Left)
-   - When will we finish all tasks?
-   - Any bottlenecks detected?
-   - Team utilization rate?
-
-3. **Anomalies** (Middle Right)
-   - Tasks with too much description?
-   - Stale/inactive tasks?
-   - Workload imbalance?
-
-4. **Recommendations** (Bottom)
-   - Focus on high-priority work
-   - Address overdue tasks
-   - Improve completion rate
-   - Balance team workload
-
-5. **Performance Chart** (Bottom)
-   - Task trends over time
-   - Completed vs In Progress vs Pending
-
----
-
-## 🛠️ Component Reference
-
-### Enhanced Input Component
+### In Your App/Dashboard
 ```jsx
-<EnhancedInput
-  label="Task Title"
-  value={title}
-  onChange={handleTitleChange}
-  placeholder="Enter task title..."
-  suggestions={labelSuggestions}
-  onSuggestionAccept={handleSuggestion}
-  autoSave={true}
-  isSaving={saving}
-  lastSaved={saveTime}
-  error={error}
-/>
+import AIAssistant from '@/components/AIAssistant';
+import TaskComments from '@/components/TaskComments';
+import PomodoroTimer from '@/components/PomodoroTimer';
+import KanbanBoard from '@/pages/Admin/KanbanBoard';
 ```
 
-### Key Features:
-- Auto-saves after 2 seconds
-- Shows "Saved 5s ago" indicator
-- Displays suggestions with 💡 icon
-- Red border on error, clears when typing
-- Works in enhanced task creation page
+### Usage in Pages
 
----
+```jsx
+// In Dashboard or Main App
+<AIAssistant />  // Floating button - add anywhere in app
 
-## 📱 Menu Navigation
+// In Task Detail Page
+<TaskComments taskId={taskId} isOpen={showComments} onClose={handleClose} />
 
-### Admin Sidebar
-```
-📊 Dashboard → /admin/dashboard
-📋 Manage Tasks → /admin/tasks
-➕ Create Task → /admin/create-task
-📈 Task Insights → /admin/insights
-⚡ Bulk Operations → /admin/bulk-operations
-👥 Team Members → /admin/users
-🧠 AI Dashboard → /admin/ai-dashboard (NEW!)
-🚪 Logout
-```
+// In a dedicated page
+<PomodoroTimer />
 
-### User Sidebar
-```
-📊 Dashboard → /user/dashboard
-📋 Manage Tasks → /user/tasks
-➕ Create Task → /user/create-task
-👥 Team Members → /user/users
-🧠 AI Dashboard → /user/ai-dashboard
-🚪 Logout
+// As a full page view
+<KanbanBoard />
 ```
 
 ---
 
-## 🚀 API Endpoints Reference
+## API Quick Calls
 
-### Tasks
-```
-GET    /api/tasks              - Get all tasks
-POST   /api/tasks              - Create task
-GET    /api/tasks/:id          - Get task details
-PUT    /api/tasks/:id          - Update task
-DELETE /api/tasks/:id          - Delete task
-PATCH  /api/tasks/bulk/:action - Bulk operations
-```
+### Get User Preferences
+```javascript
+import axiosInstance from '@/utils/axiosinstance';
 
-### Analytics
-```
-GET /api/analytics/team-overview  - Team statistics
-GET /api/analytics/completion     - Completion metrics
-GET /api/analytics/trends         - Historical trends
+const getPreferences = async () => {
+  const response = await axiosInstance.get('/api/settings/preferences');
+  return response.data.data;
+};
 ```
 
-### Users
-```
-GET    /api/users              - Get all users
-POST   /api/users              - Create user
-GET    /api/users/:id          - Get user details
-PUT    /api/users/:id          - Update user
+### Add Comment
+```javascript
+const addComment = async (taskId, content) => {
+  const response = await axiosInstance.post(
+    `/api/tasks/${taskId}/comments`,
+    { content }
+  );
+  return response.data.data;
+};
 ```
 
-### Authentication
+### AI Task Breakdown
+```javascript
+const breakdownTask = async (title, description) => {
+  const response = await axiosInstance.post(
+    '/api/ai/suggest-breakdown',
+    { taskTitle: title, taskDescription: description }
+  );
+  return response.data.data;
+};
 ```
-POST /api/auth/login            - User login
-POST /api/auth/signup           - User registration
-POST /api/auth/logout           - User logout
-GET  /api/auth/verify           - Verify token
+
+### Get Task Comments
+```javascript
+const getComments = async (taskId) => {
+  const response = await axiosInstance.get(
+    `/api/tasks/${taskId}/comments?limit=20&skip=0`
+  );
+  return response.data.data.comments;
+};
+```
+
+### Save Time Entry
+```javascript
+const saveTimeEntry = async (taskId, duration) => {
+  await axiosInstance.post(
+    `/api/tasks/${taskId}/time/manual`,
+    { duration, description: 'Manual time entry' }
+  );
+};
 ```
 
 ---
 
-## 💾 Data Structure
+## Database Query Examples
 
-### Task Object
-```json
+### Get All Comments for a Task
+```javascript
+const Comment = require('../models/Comment');
+const comments = await Comment.find({ task: taskId })
+  .populate('author', 'name profileImageUrl email')
+  .sort({ createdAt: -1 });
+```
+
+### Get User Preferences
+```javascript
+const User = require('../models/User');
+const user = await User.findById(userId).select('preferences notificationSettings');
+```
+
+### Get Comments with Reactions
+```javascript
+const comments = await Comment.find({ task: taskId })
+  .populate('author', 'name profileImageUrl')
+  .populate('reactions.user', 'name');
+```
+
+---
+
+## Configuration Objects
+
+### Notification Settings Default
+```javascript
 {
-  "_id": "507f1f77bcf86cd799439011",
-  "title": "Complete project",
-  "description": "Finish the task management system",
-  "priority": "High",
-  "status": "In Progress",
-  "dueDate": "2024-11-20",
-  "assignedTo": "user_id",
-  "labels": ["urgent", "backend"],
-  "createdAt": "2024-11-14T10:30:00Z",
-  "updatedAt": "2024-11-14T15:45:00Z"
+  taskAssigned: true,
+  taskDueSoon: true,
+  taskCompleted: false,
+  mentionedInComment: true,
+  dailyDigest: true,
+  weeklyReport: false
 }
 ```
 
-### Insight Object
-```json
+### User Preferences Default
+```javascript
 {
-  "teamVelocity": 65,
-  "priorityDistribution": {
-    "High": 5,
-    "Medium": 10,
-    "Low": 8
+  theme: 'light',
+  language: 'en',
+  timezone: 'UTC',
+  dateFormat: 'MM/DD/YYYY',
+  emailNotifications: true,
+  pushNotifications: true,
+  weekStartsOn: 'monday'
+}
+```
+
+### AI Response Format (Breakdown)
+```javascript
+{
+  suggestedSubtasks: ['Task 1', 'Task 2', ...],
+  estimatedDuration: '2-3 days',
+  difficulty: 'Medium',
+  tips: ['Tip 1', 'Tip 2', ...]
+}
+```
+
+### Comment Structure
+```javascript
+{
+  _id: ObjectId,
+  task: ObjectId,
+  author: {
+    _id: ObjectId,
+    name: String,
+    email: String,
+    profileImageUrl: String
   },
-  "overdueCount": 2,
-  "workloadCurrent": 7
-}
-```
-
-### Prediction Object
-```json
-{
-  "estimatedCompletion": 3,
-  "bottleneckDetected": false,
-  "resourceUtilization": 78,
-  "confidence": 85
+  content: String,
+  reactions: [{ emoji: String, count: Number }],
+  isEdited: Boolean,
+  createdAt: Date,
+  updatedAt: Date
 }
 ```
 
 ---
 
-## 🎨 Color Coding
+## Error Handling Patterns
 
-### Priority Colors
-- 🔴 **High**: Red (#ef4444)
-- 🟡 **Medium**: Yellow/Orange (#f59e0b)
-- 🟢 **Low**: Green (#10b981)
-
-### Status Colors
-- ✅ **Completed**: Green (#22c55e)
-- 🔵 **In Progress**: Blue (#3b82f6)
-- ⚪ **Pending**: Gray (#9ca3af)
-
-### Severity Colors
-- 🔴 **Critical**: Red (#dc2626)
-- 🟡 **Warning**: Orange (#f97316)
-- 🔵 **Info**: Blue (#0284c7)
-
----
-
-## ⚙️ Configuration Files
-
-### Backend
-- `backend/server.js` - Main Express app
-- `backend/config/db.js` - MongoDB connection
-- `.env` - Environment variables (create locally)
-
-### Frontend
-- `frontend/vite.config.js` - Vite build config
-- `frontend/src/utils/apiPaths.js` - API routes
-- `frontend/src/utils/axiosinstance.js` - HTTP config
-- `tailwind.config.js` - Tailwind styling config
-
----
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**"Cannot fetch tasks"**
-- Verify backend running: http://localhost:5000
-- Check MongoDB connection in console
-- Verify CORS allows localhost:5174
-
-**"AI Dashboard shows no data"**
-- Ensure tasks exist in database
-- Check browser console for errors
-- Click refresh button on dashboard
-
-**"Auto-save not working"**
-- Check localStorage quota
-- Verify browser allows storage
-- Check console for errors
-
-**"Charts not showing"**
-- Verify Recharts installed: `npm list recharts`
-- Check data is being fetched
-- Verify chart component exports
-
----
-
-## 📊 Sample Test Data
-
-### Test Task 1
-```json
-{
-  "title": "Design UI mockups",
-  "description": "Create comprehensive UI mockups for the dashboard with all interactive elements and responsive layouts.",
-  "priority": "High",
-  "dueDate": "2024-11-20",
-  "labels": ["design", "urgent"]
+### Settings Update
+```javascript
+try {
+  await axiosInstance.put('/api/settings/profile', updateData);
+  showMessage('Profile updated successfully!', 'success');
+} catch (error) {
+  showMessage(
+    error.response?.data?.message || 'Error updating profile',
+    'error'
+  );
 }
 ```
 
-### Test Task 2
-```json
-{
-  "title": "Review pull requests",
-  "description": "Review pending PRs from team members",
-  "priority": "Medium",
-  "dueDate": "2024-11-18",
-  "labels": ["code-review"]
+### Comment Operations
+```javascript
+try {
+  const response = await axiosInstance.post(
+    `/api/tasks/${taskId}/comments`,
+    { content }
+  );
+  // Update UI optimistically
+} catch (error) {
+  if (error.response?.status === 404) {
+    alert('Task not found');
+  } else if (error.response?.status === 401) {
+    alert('Please login first');
+  } else {
+    alert('Error: ' + error.response?.data?.message);
+  }
 }
 ```
 
 ---
 
-## 📚 File Locations
+## State Management Patterns
 
-| Component | Path |
-|-----------|------|
-| AI Dashboard | `frontend/src/pages/Admin/AIDashboard.jsx` |
-| Enhanced Input | `frontend/src/components/EnhancedInput.jsx` |
-| AI Suggestions | `frontend/src/utils/aiSuggestions.js` |
-| Enhanced Create | `frontend/src/pages/Admin/CreateTaskEnhanced.jsx` |
-| Menu Data | `frontend/src/utils/data.js` |
-| API Paths | `frontend/src/utils/apiPaths.js` |
-| User Context | `frontend/src/context/userContext.jsx` |
-| App Routes | `frontend/src/App.jsx` |
-| Backend Server | `backend/server.js` |
+### Comment List with Pagination
+```javascript
+const [comments, setComments] = useState([]);
+const [page, setPage] = useState(0);
+
+const loadMore = async () => {
+  const response = await axiosInstance.get(
+    `/api/tasks/${taskId}/comments?limit=20&skip=${page * 20}`
+  );
+  setComments(prev => [...prev, ...response.data.data.comments]);
+  setPage(prev => prev + 1);
+};
+```
+
+### Settings with Auto-save
+```javascript
+const [preferences, setPreferences] = useState(initialPrefs);
+const [hasChanged, setHasChanged] = useState(false);
+
+const handlePrefChange = (key, value) => {
+  setPreferences(prev => ({ ...prev, [key]: value }));
+  setHasChanged(true);
+};
+
+const autoSave = useEffect(() => {
+  const timer = setTimeout(async () => {
+    if (hasChanged) {
+      await updatePreferences();
+      setHasChanged(false);
+    }
+  }, 2000);
+  return () => clearTimeout(timer);
+}, [preferences, hasChanged]);
+```
 
 ---
 
-## ✅ Pre-Deployment Checklist
+## Environment Variables
 
-- [ ] Backend .env configured with MongoDB URI
-- [ ] Frontend API paths pointing to correct backend
-- [ ] CORS origins updated for production
-- [ ] All environment variables set
-- [ ] JWT secret configured
-- [ ] Database backups created
-- [ ] Error logging configured
-- [ ] HTTPS certificates ready
-- [ ] Rate limiting configured
-- [ ] Input validation enabled
+```env
+# Backend
+MONGODB_URI=mongodb://localhost:27017/taskdb
+JWT_SECRET=your_secret_key
+ADMIN_INVITE_TOKEN=admin_token_123
+PORT=5000
+
+# Frontend (in .env or .env.local)
+VITE_API_URL=http://localhost:5000
+VITE_ENV=development
+```
 
 ---
 
-## 🚀 Deployment Tips
+## Common Bugs & Fixes
 
-### Backend (Node.js)
+### Bug: Comments not appearing
+**Fix**: Check `populate()` calls in controller, verify foreign keys
+
+### Bug: Settings not persisting
+**Fix**: Verify user._id vs req.user.id consistency in controller
+
+### Bug: AI endpoints timing out
+**Fix**: Check function execution time, add error boundaries
+
+### Bug: Kanban drag-drop freezing
+**Fix**: Verify react-beautiful-dnd version, check list re-renders
+
+### Bug: Pomodoro timer not starting
+**Fix**: Check browser console for Audio API errors, verify permissions
+
+---
+
+## Performance Tips
+
+### Optimize Comment Queries
+```javascript
+// ❌ Bad - loads all fields
+const comments = await Comment.find({ task: taskId });
+
+// ✅ Good - selective fields
+const comments = await Comment.find({ task: taskId })
+  .select('author content reactions createdAt')
+  .lean();
+```
+
+### Optimize Frontend Renders
+```javascript
+// ✅ Use React.memo for list items
+const CommentItem = React.memo(({ comment, onDelete }) => (
+  <div>{comment.content}</div>
+));
+
+// ✅ Pagination instead of infinite scroll
+const [page, setPage] = useState(0);
+```
+
+### Cache Preferences
+```javascript
+// Store in localStorage to avoid repeated API calls
+const getCachedPreferences = () => {
+  const cached = localStorage.getItem('userPreferences');
+  return cached ? JSON.parse(cached) : null;
+};
+```
+
+---
+
+## Testing Commands
+
 ```bash
-# Build
-npm install --production
+# Test backend server
+curl -X GET http://localhost:5000/api/settings/preferences \
+  -H "Authorization: Bearer YOUR_TOKEN"
 
-# Run
-NODE_ENV=production node backend/server.js
+# Test comment endpoint
+curl -X POST http://localhost:5000/api/tasks/TASK_ID/comments \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"content":"Test comment"}'
 
-# Docker deployment
-docker build -t task-manager-backend .
-docker run -p 5000:5000 task-manager-backend
-```
-
-### Frontend (React)
-```bash
-# Build
-npm run build
-
-# Deploy dist folder to CDN/Server
-# Serve on http://localhost (reverse proxy to backend)
+# Test AI endpoint
+curl -X POST http://localhost:5000/api/ai/suggest-breakdown \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"taskTitle":"Build API","taskDescription":"REST endpoints"}'
 ```
 
 ---
 
-## 📞 Support
+## Browser DevTools Tips
 
-For issues:
-1. Check browser console for errors (F12)
-2. Check backend logs
-3. Verify MongoDB connection
-4. Clear browser cache and localStorage
-5. Try incognito/private mode
-6. Restart both frontend and backend
+### Check API Responses
+```javascript
+// In Console
+const api = await fetch('/api/tasks/123/comments', {
+  headers: {'Authorization': 'Bearer TOKEN'}
+});
+console.log(await api.json());
+```
+
+### Debug React State
+```javascript
+// In Console (React DevTools must be installed)
+$r.state  // View component state
+$r.props  // View component props
+```
+
+### Monitor Network
+1. Open DevTools → Network tab
+2. Filter by fetch/xhr
+3. Check response status and headers
+4. View payload in Preview
 
 ---
 
-**Last Updated**: November 14, 2025
+## Useful Links
+
+- **MongoDB**: https://docs.mongodb.com/
+- **Mongoose**: https://mongoosejs.com/
+- **Axios**: https://axios-http.com/
+- **React Beautiful DND**: https://github.com/atlassian/react-beautiful-dnd
+- **React Icons**: https://react-icons.github.io/react-icons/
+
+---
+
+## Quick Snippets
+
+### Format Date
+```javascript
+import moment from 'moment';
+moment(date).format('MMMM DD, YYYY');  // Dec 20, 2025
+moment(date).fromNow();                 // 2 hours ago
+```
+
+### Show Toast Message
+```javascript
+const [message, setMessage] = useState('');
+
+const showMessage = (msg, type = 'success') => {
+  setMessage(msg);
+  setTimeout(() => setMessage(''), 3000);
+};
+```
+
+### Handle Loading State
+```javascript
+const [loading, setLoading] = useState(false);
+
+const fetchData = async () => {
+  setLoading(true);
+  try {
+    // API call
+  } finally {
+    setLoading(false);
+  }
+};
+```
+
+---
+
+**Last Updated**: November 15, 2025
 **Version**: 1.0.0
+

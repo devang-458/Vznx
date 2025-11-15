@@ -5,7 +5,8 @@ import {
     LuSquarePlus,
     LuLogOut,
     LuTrendingUp,
-    LuZap
+    LuZap,
+    LuSettings
 } from "react-icons/lu"
 import { GiSmart } from "react-icons/gi"
 
@@ -54,6 +55,12 @@ export const SIDE_MENU_DATA = [
     },
     {
         id: "08",
+        label: "Setting",
+        icons: LuSettings,
+        path: '/admin/setting'
+    },
+    {
+        id: "09",
         label: "Logout",
         icons: LuLogOut,
         path: 'logout'
@@ -79,12 +86,12 @@ export const SIDE_MENU_USER_DATA = [
         icons: LuSquarePlus,
         path: '/user/create-task'
     }, 
-    // {
-    //     id: "04",
-    //     label: "Team Members",
-    //     icons: LuUsers,
-    //     path: '/user/users'
-    // },
+    {
+        id: "04",
+        label: "Team Members",
+        icons: LuUsers,
+        path: '/user/users'
+    },
     // {
     //     id: "05",
     //     label: "Ai-Dashboard",
@@ -93,10 +100,16 @@ export const SIDE_MENU_USER_DATA = [
     // },
     {
         id: "06",
+        label: "Setting",
+        icons: LuSettings,
+        path: '/user/setting'
+    },
+    {
+        id: "07",
         label: "Logout",
         icons: LuLogOut,
         path: 'logout'
-    },
+    }
 
 ]
 

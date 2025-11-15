@@ -24,7 +24,12 @@ export const API_PATHS = {
         UPDATE_TASK: (taskId) => `/api/tasks/${taskId}`,
         DELETE_TASK: (taskId) => `/api/tasks/${taskId}`,
         UPDATE_TASK_STATUS: (taskId) => `/api/tasks/${taskId}/status`,
-        UPDATE_TODO_CHECKLIST: (taskId) => `/api/tasks/${taskId}/todo`
+        UPDATE_TODO_CHECKLIST: (taskId) => `/api/tasks/${taskId}/todo`,
+        ADD_COMMENT: (taskId) => `/api/tasks/${taskId}/comments`,
+        GET_COMMENTS: (taskId) => `/api/tasks/${taskId}/comments`,
+        START_TIMER: (taskId) => `/api/tasks/${taskId}/time/start`,
+        STOP_TIMER: (taskId) => `/api/tasks/${taskId}/time/stop`,
+        ADD_TIME_ENTRY: (taskId) => `/api/tasks/${taskId}/time/manual`
     },
     ANALYTICS: {
         GET_INSIGHTS: "/api/analytics/insights",
@@ -57,5 +62,28 @@ export const API_PATHS = {
     },
     IMAGE: {
         UPLOAD_IMAGE: "/api/auth/upload-image"
+    },
+    SETTINGS: {
+        UPDATE_PROFILE: "/api/settings/profile",
+        GET_PREFERENCES: "/api/settings/preferences",
+        UPDATE_PREFERENCES: "/api/settings/preferences",
+        DELETE_ACCOUNT: "/api/settings/account",
+        EXPORT_DATA: "/api/settings/export-data"
+    },
+    AI: {
+        SUGGEST_BREAKDOWN: "/api/ai/suggest-breakdown",
+        SUGGEST_ASSIGNEE: "/api/ai/suggest-assignee",
+        SMART_SCHEDULE: "/api/ai/smart-schedule",
+        GENERATE_DESCRIPTION: "/api/ai/generate-description",
+        PREDICT_COMPLETION: "/api/ai/predict-completion"
+    },
+    COMMENTS: {
+        ADD_COMMENT: (taskId) => `/api/tasks/${taskId}/comments`,
+        GET_COMMENTS: (taskId) => `/api/tasks/${taskId}/comments`,
+        GET_THREAD: (commentId) => `/api/comments/${commentId}`,
+        UPDATE_COMMENT: (commentId) => `/api/comments/${commentId}`,
+        DELETE_COMMENT: (commentId) => `/api/comments/${commentId}`,
+        ADD_REACTION: (commentId) => `/api/comments/${commentId}/react`,
+        REPLY_COMMENT: (commentId) => `/api/comments/${commentId}/reply`
     }
 }

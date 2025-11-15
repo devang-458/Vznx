@@ -16,8 +16,8 @@ const CustomPieChart = ({ data, colors }) => {
             <PieChart>
                 <Pie
                     data={data}
-                    dataKey="count"
-                    nameKey="status"
+                    dataKey={data[0]?.value ? "value" : "count"}
+                    nameKey={data[0]?.name ? "name" : "status"}
                     cx="50%"
                     cy="50%"
                     outerRadius={130}

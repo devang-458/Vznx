@@ -4,12 +4,14 @@ import { useUserAuth } from '../../hooks/useUserAuth';
 import { UserContext } from '../../context/userContext';
 import axiosInstance from '../../utils/axiosinstance';
 import { API_PATHS } from '../../utils/apiPaths';
-import { IoAddCircle, IoDownload, IoPencil, IoTrash, IoClose } from 'react-icons/io5';
+import { IoAddCircle, IoDownload, IoPencil, IoTrash, IoClose, IoChatbubbleEllipses } from 'react-icons/io5';
 import { addThousandsSeparator } from '../../utils/helper';
+import { useNavigate } from 'react-router-dom';
 
 const ManageUsers = () => {
   useUserAuth();
   const { user } = useContext(UserContext);
+  const navigate = useNavigate();
 
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -256,6 +258,13 @@ const ManageUsers = () => {
                               title="Edit User"
                             >
                               <IoPencil size={18} />
+                            </button>
+                            <button
+                              onClick={() => navigate(`/admin/messages?userId=${u._id}`)}
+                              className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                              title="Message User"
+                            >
+                              <IoChatbubbleEllipses size={18} />
                             </button>
                             <button
                               onClick={() => handleDeleteUser(u._id)}

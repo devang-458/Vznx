@@ -22,6 +22,8 @@ import ManageUsers from './pages/Admin/ManageUsers'
 import TaskInsightsDashboard from './pages/Insights/TaskInsightsDashboard'
 import BulkOperationsTaskManager from './pages/Admin/BulkOperationsTaskManager'
 import AIDashboard from './pages/Admin/AIDashboard'
+import UserSettings from './pages/Settings/UserSettings'
+import Messages from './pages/Messages'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -42,6 +44,8 @@ function App() {
             <Route path='/admin/bulk-operations' element={<BulkOperationsTaskManager />} />
             <Route path='/admin/ai-dashboard' element={<AIDashboard />} />
             <Route path='/admin/users' element={< ManageUsers />} />
+            <Route path='/admin/setting' element={<UserSettings />} />
+            <Route path='/admin/messages' element={<Messages />} />
           </Route>
 
           {/* { User Routes } */}
@@ -51,6 +55,8 @@ function App() {
             <Route path='/user/tasks/:id' element={<ViewTaskDetails />} />
             <Route path='/user/create-task' element={<CreateTask />} />
             <Route path='/user/users' element={<ManageUsers />} />
+            <Route path='/user/setting' element={<UserSettings />} />
+            <Route path='/user/messages' element={<Messages />} />
           </Route>
 
           {/* {default Routes} */}

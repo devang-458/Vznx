@@ -1,4 +1,5 @@
 const Task = require("../models/Task.js")
+const Comment = require("../models/Comment.js")
 
 
 const getTasks = async (req, res) => {
@@ -110,6 +111,16 @@ const createTask = async (req, res) => {
             todoChecklist,
             createdBy: req.user._id
         })
+
+        if (req.body.comment) {
+            const comment = await Comment.create({
+                content: req.body.comment,
+                author: req.user._id,
+                task: task._id
+            });
+            task.comments.push(comment._id);
+            await task.save();
+        }
 
         res.status(201).json({ message: "Task created successfully", task })
     } catch (error) {
@@ -363,6 +374,17 @@ const getUserDashboardData = async (req, res) => {
     }
 };
 
+const uploadAttachment = (req, res) => {
+    if (req.file) {
+        res.status(200).json({
+            message: "File uploaded successfully",
+            filePath: `/uploads/${req.file.filename}`
+        });
+    } else {
+        res.status(400).json({ message: "No file uploaded" });
+    }
+};
+
 module.exports = {
     getTasks,
     getTaskById,
@@ -372,5 +394,6 @@ module.exports = {
     updateTaskStatus,
     updateTaskChecklist,
     getDashboardData,
-    getUserDashboardData
+    getUserDashboardData,
+    uploadAttachment
 }
