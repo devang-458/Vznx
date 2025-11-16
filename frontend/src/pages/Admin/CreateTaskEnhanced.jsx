@@ -6,6 +6,8 @@ import axiosInstance from '../../utils/axiosinstance'
 import { API_PATHS } from '../../utils/apiPaths'
 import { generatePlaceholders, suggestLabels, generatePrioritySuggestion, getAutoSaveMessage } from '../../utils/aiSuggestions'
 import { LuWand2, LuLoader } from 'lucide-react'
+import Input from '../../components/Inputs/Input'
+import Button from '../../components/layouts/Button'
 
 const CreateTaskEnhanced = () => {
   const { user } = useContext(UserContext)
@@ -194,19 +196,21 @@ const CreateTaskEnhanced = () => {
             <div className="flex items-center justify-between">
               <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
               {prioritySuggestion && prioritySuggestion !== formData.priority && (
-                <button
+                <Button
                   type="button"
                   onClick={() => handleAcceptSuggestion('priority', prioritySuggestion)}
+                  variant="secondary"
+                  size="sm"
                   className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200 flex items-center"
                 >
                   <LuWand2 size={14} className="mr-1" /> Suggest: {prioritySuggestion}
-                </button>
+                </Button>
               )}
             </div>
             <select
               value={formData.priority}
               onChange={handleChange('priority')}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-transparent border border-slate-300 rounded-md px-3 py-2 outline-none focus:border-primary"
             >
               <option value="Low">Low</option>
               <option value="Medium">Medium</option>
@@ -217,11 +221,11 @@ const CreateTaskEnhanced = () => {
           {/* Due Date */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
-            <input
+            <Input
               type="date"
               value={formData.dueDate}
               onChange={handleChange('dueDate')}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full"
             />
             {errors.dueDate && <p className="text-red-500 text-xs mt-1">{errors.dueDate}</p>}
           </div>
@@ -233,40 +237,42 @@ const CreateTaskEnhanced = () => {
               {labelSuggestions.length > 0 && (
                 <div className="text-xs space-y-1">
                   {labelSuggestions.map(suggestion => (
-                    <button
+                    <Button
                       key={suggestion}
                       type="button"
                       onClick={() => handleAcceptSuggestion('label', suggestion)}
+                      variant="secondary"
+                      size="sm"
                       className="block bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-200 text-xs"
                     >
                       + {suggestion}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               )}
             </div>
 
             <div className="flex gap-2 mb-2">
-              <input
-                type="text"
-                value={formData.newLabel}
-                onChange={handleChange('newLabel')}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    handleAddLabel(formData.newLabel)
-                  }
-                }}
-                placeholder="Add a label and press Enter"
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button
+                          <Input
+                            type="text"
+                            value={formData.newLabel}
+                            onChange={handleChange('newLabel')}
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault()
+                                handleAddLabel(formData.newLabel)
+                              }
+                            }}
+                            placeholder="Add a label and press Enter"
+                            className="flex-1"
+                          />              <Button
                 type="button"
                 onClick={() => handleAddLabel(formData.newLabel)}
-                className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
+                variant="secondary"
+                className="px-4 py-2"
               >
                 Add
-              </button>
+              </Button>
             </div>
 
             {/* Display labels */}
@@ -277,27 +283,30 @@ const CreateTaskEnhanced = () => {
                   className="inline-flex items-center gap-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
                 >
                   {label}
-                  <button
+                  <Button
                     type="button"
                     onClick={() => handleRemoveLabel(idx)}
+                    variant="ghost"
+                    size="sm"
                     className="text-blue-600 hover:text-blue-800 font-bold"
                   >
                     ×
-                  </button>
+                  </Button>
                 </span>
               ))}
             </div>
           </div>
 
           {/* Submit button */}
-          <button
+          <Button
             type="submit"
             disabled={loading}
-            className="w-full px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 flex items-center justify-center gap-2"
+            variant="primary"
+            className="w-full flex items-center justify-center gap-2"
           >
             {loading && <LuLoader className="animate-spin" size={20} />}
             {loading ? 'Creating Task...' : 'Create Task'}
-          </button>
+          </Button>
         </form>
       </div>
     </AdminLayout>

@@ -3,6 +3,7 @@ import axiosInstance from '../utils/axiosinstance'
 import { API_PATHS } from '../utils/apiPaths'
 import moment from 'moment'
 import { LuCheckCheck, LuEdit, LuTrash2, LuUser, LuBadgeAlert, LuRefreshCw } from 'react-icons/lu'
+import Button from './layouts/Button'
 
 const ActivityFeed = () => {
     const [activities, setActivities] = useState([])
@@ -103,12 +104,14 @@ const ActivityFeed = () => {
                     )}
                 </div>
                 {unreadCount > 0 && (
-                    <button
+                    <Button
                         onClick={markAllAsRead}
-                        className='text-sm text-blue-600 hover:text-blue-700 font-medium'
+                        variant="ghost"
+                        size="sm"
+                        className='text-blue-600 hover:text-blue-700 font-medium'
                     >
                         Mark all as read
-                    </button>
+                    </Button>
                 )}
             </div>
 
@@ -152,13 +155,15 @@ const ActivityFeed = () => {
             )}
 
             {hasMore && (
-                <button
+                <Button
                     onClick={loadMore}
                     disabled={loading}
-                    className='w-full mt-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium disabled:opacity-50'
+                    variant="ghost"
+                    size="sm"
+                    className='w-full mt-4 text-blue-600 hover:text-blue-700 font-medium'
                 >
                     {loading ? 'Loading...' : 'Load more'}
-                </button>
+                </Button>
             )}
         </div>
     )

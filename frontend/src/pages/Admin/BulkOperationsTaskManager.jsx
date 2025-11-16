@@ -5,13 +5,20 @@ import axiosInstance from "../../utils/axiosinstance";
 import { API_PATHS } from "../../utils/apiPaths";
 import { LuCheck, LuFlag } from "react-icons/lu";
 import TaskListTable from "../../components/TaskListTable";
+import Input from "../../components/Inputs/Input";
+import Button from "../../components/layouts/Button";
+import useFetchData from "../../hooks/useFetchData";
 
 const BulkOperationsTaskManager = () => {
-    const { user } = useContext(UserContext);
-    const [tasks, setTasks] = useState([]);
+    const { data: tasksData, loading, error, fetchData: refetchTasks } = useFetchData(
+        API_PATHS.TASKS.GET_ALL_TASKS,
+        { initialData: [] }
+    );
+
+    const tasks = Array.isArray(tasksData) ? tasksData : tasksData?.tasks || [];
     const [filteredTasks, setFilteredTasks] = useState([]);
     const [selectedTasks, setSelectedTasks] = useState(new Set());
-    const [loading, setLoading] = useState(true);
+    // const [loading, setLoading] = useState(true); // Removed, now from hook
 
     // Filters
     const [filterStatus, setFilterStatus] = useState("all");
@@ -22,24 +29,24 @@ const BulkOperationsTaskManager = () => {
     const [bulkStatus, setBulkStatus] = useState("");
     const [bulkPriority, setBulkPriority] = useState("");
 
-    useEffect(() => {
-        fetchTasks();
-    }, []);
+    // useEffect(() => { // Removed, now handled by hook
+    //     fetchTasks();
+    // }, []);
 
-    const fetchTasks = async () => {
-        try {
-            const response = await axiosInstance.get(API_PATHS.TASKS.GET_ALL_TASKS);
-            const taskList = Array.isArray(response.data)
-                ? response.data
-                : response.data.tasks || [];
-            setTasks(taskList);
-            setFilteredTasks(taskList);
-        } catch (err) {
-            setTasks([]);
-        } finally {
-            setLoading(false);
-        }
-    };
+    // const fetchTasks = async () => { // Removed, now handled by hook
+    //     try {
+    //         const response = await axiosInstance.get(API_PATHS.TASKS.GET_ALL_TASKS);
+    //         const taskList = Array.isArray(response.data)
+    //             ? response.data
+    //             : response.data.tasks || [];
+    //         setTasks(taskList);
+    //         setFilteredTasks(taskList);
+    //     } catch (err) {
+    //         setTasks([]);
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
 
     // Filtering
     useEffect(() => {
@@ -88,7 +95,7 @@ const BulkOperationsTaskManager = () => {
             await axiosInstance.put(endpoint, payload);
             alert("Bulk update successful");
             setSelectedTasks(new Set());
-            fetchTasks();
+            refetchTasks(); // Call refetchTasks from the hook
         } catch (err) {
             alert("Bulk update failed");
         }
@@ -108,7 +115,7 @@ const BulkOperationsTaskManager = () => {
                     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
                         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
 
-                            <input
+                            <Input
                                 type="text"
                                 placeholder="Search tasks..."
                                 value={searchTerm}
@@ -158,8 +165,9 @@ const BulkOperationsTaskManager = () => {
                             <option value="Completed">Completed</option>
                         </select>
 
-                        <button
-                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                        <Button
+                            className="flex items-center gap-2"
+                            variant="primary"
                             onClick={() =>
                                 runBulk(API_PATHS.BULK_OPERATIONS.UPDATE_STATUS, {
                                     taskIds: Array.from(selectedTasks),
@@ -168,7 +176,7 @@ const BulkOperationsTaskManager = () => {
                             }
                         >
                             <LuCheck /> Update Status
-                        </button>
+                        </Button>
 
                         <select
                             value={bulkPriority}
@@ -181,8 +189,9 @@ const BulkOperationsTaskManager = () => {
                             <option value="High">High</option>
                         </select>
 
-                        <button
-                            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+                        <Button
+                            className="flex items-center gap-2"
+                            variant="primary"
                             onClick={() =>
                                 runBulk(API_PATHS.BULK_OPERATIONS.UPDATE_PRIORITY, {
                                     taskIds: Array.from(selectedTasks),
@@ -191,7 +200,7 @@ const BulkOperationsTaskManager = () => {
                             }
                         >
                             <LuFlag /> Update Priority
-                        </button>
+                        </Button>
 
                     </div>
 

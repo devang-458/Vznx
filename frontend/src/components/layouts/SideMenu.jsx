@@ -31,10 +31,10 @@ const SideMenu = ({ activeMenu }) => {
   }, [user]);
 
   return (
-    <div className="w-64  bg-white border-r border-gray-200/50 sticky  z-20 flex flex-col overflow-hidden">
+    <div className="w-64  bg-white border-r border-gray-200/50 sticky top-0 z-20 flex flex-col overflow-hidden">
       {/* Profile Section */}
-      <div className="flex flex-col items-center justify-center mb-7 pt-5 shrink-0">
-        <div className="relative ">
+      <div className="flex-row justify-evenly items-center mb-7 mx-4 pt-5 shrink-0 flex ">
+        <div className="relative">
           <img
             src={user[0]?.profileImageUrl ? user.profileImageUrl : image}
             alt="Profile"
@@ -42,16 +42,18 @@ const SideMenu = ({ activeMenu }) => {
           />
         </div>
 
-        {user?.role === 'admin' && (
-          <div className="text-xs font-medium text-white bg-primary px-3 py-0.5 rounded mt-1">
-            Admin
-          </div>
-        )}
+        <div>
+          {user?.role === 'admin' && (
+            <div className="text-xs font-medium text-white bg-primary px-3 py-0.5 rounded mt-1">
+              Admin
+            </div>
+          )}
 
-        <h5 className="text-gray-950 text-lg font-medium leading-6 mt-3">
-          {user?.name || ''}
-        </h5>
-        <p className="text-xs text-gray-500">{user?.email || ''}</p>
+          <h5 className="text-gray-950 text-lg font-medium leading-6 mt-3">
+            {user?.name || ''}
+          </h5>
+          <p className="text-xs text-gray-500">{user?.email || ''}</p>
+        </div>
       </div>
 
       {/* Menu Items - Scrollable */}

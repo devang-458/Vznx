@@ -15,6 +15,8 @@ import {
   IoDownload,
   IoAlertCircle
 } from 'react-icons/io5';
+import Button from '../../components/layouts/Button';
+import useFetchData from '../../hooks/useFetchData';
 
 const ViewTaskDetails = () => {
   useUserAuth();
@@ -22,31 +24,36 @@ const ViewTaskDetails = () => {
   const { user } = useContext(UserContext);
   const { id } = useParams();
 
-  const [task, setTask] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { data: task, loading, error, fetchData: refetchTaskDetails, setData: setTask } = useFetchData(
+    user && id ? API_PATHS.TASKS.GET_TASK_BY_ID(id) : null,
+    { skip: !user || !id }
+  );
+
+  // const [task, setTask] = useState(null); // Removed
+  // const [loading, setLoading] = useState(true); // Removed
   const [updating, setUpdating] = useState(false);
-  const [error, setError] = useState('');
+  // const [error, setError] = useState(''); // Removed
   const [successMessage, setSuccessMessage] = useState('');
 
-  useEffect(() => {
-    if (user && id) {
-      fetchTaskDetails();
-    }
-  }, [user, id]);
+  // useEffect(() => { // Removed
+  //   if (user && id) {
+  //     fetchTaskDetails();
+  //   }
+  // }, [user, id]);
 
-  const fetchTaskDetails = async () => {
-    setLoading(true);
-    try {
-      const response = await axiosInstance.get(API_PATHS.TASKS.GET_TASK_BY_ID(id));
-      setTask(response.data);
-      setError('');
-    } catch (error) {
-      console.error('Error fetching task details:', error);
-      setError('Failed to load task details');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const fetchTaskDetails = async () => { // Removed
+  //   setLoading(true);
+  //   try {
+  //     const response = await axiosInstance.get(API_PATHS.TASKS.GET_TASK_BY_ID(id));
+  //     setTask(response.data);
+  //     setError('');
+  //   } catch (error) {
+  //     console.error('Error fetching task details:', error);
+  //     setError('Failed to load task details');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const handleTodoToggle = async (todoIndex) => {
     if (!task) return;
@@ -56,7 +63,7 @@ const ViewTaskDetails = () => {
     );
 
     setUpdating(true);
-    setError('');
+    // setError(''); // Error is now from the hook
     setSuccessMessage('');
     
     try {
@@ -64,13 +71,13 @@ const ViewTaskDetails = () => {
         todoChecklist: updatedChecklist
       });
       
-      setTask(response.data);
+      setTask(response.data); // Update local task state directly
       setSuccessMessage('Checklist updated successfully!');
       
       setTimeout(() => setSuccessMessage(''), 3000);
-    } catch (error) {
-      console.error('Error updating checklist:', error);
-      setError('Failed to update checklist');
+    } catch (err) {
+      console.error('Error updating checklist:', err);
+      // setError(err.response?.data?.message || 'Failed to update checklist'); // Error is now from the hook
     } finally {
       setUpdating(false);
     }
@@ -78,7 +85,7 @@ const ViewTaskDetails = () => {
 
   const handleStatusChange = async (newStatus) => {
     setUpdating(true);
-    setError('');
+    // setError(''); // Error is now from the hook
     setSuccessMessage('');
     
     try {
@@ -86,16 +93,16 @@ const ViewTaskDetails = () => {
         status: newStatus
       });
       
-      setTask(prev => ({ ...prev, status: newStatus }));
+      setTask(prev => ({ ...prev, status: newStatus })); // Update local task state directly
       setSuccessMessage('Status updated successfully!');
       
       setTimeout(() => setSuccessMessage(''), 3000);
       
       // Refresh task details to get updated progress
-      fetchTaskDetails();
-    } catch (error) {
-      console.error(' Error updating status:', error);
-      setError('Failed to update status');
+      refetchTaskDetails();
+    } catch (err) {
+      console.error(' Error updating status:', err);
+      // setError(err.response?.data?.message || 'Failed to update status'); // Error is now from the hook
     } finally {
       setUpdating(false);
     }
@@ -142,12 +149,13 @@ const ViewTaskDetails = () => {
             <IoAlertCircle className="text-xl" />
             {error || 'Task not found'}
           </div>
-          <button
+          <Button
             onClick={() => navigate(-1)}
-            className="mt-4 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors font-medium flex items-center gap-2"
+            variant="secondary"
+            className="mt-4 flex items-center gap-2"
           >
             <IoArrowBack /> Go Back
-          </button>
+          </Button>
         </div>
       </DashboardLayout>
     );
@@ -162,12 +170,13 @@ const ViewTaskDetails = () => {
       <div className="my-5 max-w-4xl mx-auto bg-black">
         {/* Header */}
         <div className="mb-4 ">
-          <button
+          <Button
             onClick={() => navigate(-1)}
-            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors font-medium flex items-center gap-2 mb-4"
+            variant="secondary"
+            className="flex items-center gap-2 mb-4"
           >
             <IoArrowBack /> Back
-          </button>
+          </Button>
           
           {/* Success Message */}
           {successMessage && (

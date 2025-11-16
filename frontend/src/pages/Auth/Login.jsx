@@ -6,6 +6,7 @@ import Input from '../../components/Inputs/Input';
 import axiosInstance from '../../utils/axiosinstance';
 import { API_PATHS } from '../../utils/apiPaths';
 import { UserContext } from '../../context/userContext';
+import Button from '../../components/layouts/Button';
 
 
 const Login = () => {
@@ -95,10 +96,11 @@ const Login = () => {
 
                 {error && <p className='text-red-500 text-xs pb-2.5'>{error}</p>}
 
-                <button
-                    className='btn-primary'
+                <Button
+                    variant='primary'
                     type='submit'
                     disabled={loading}
+                    className='w-full pt-2 mt-4'
                 >
                     {loading ? (
                         <div className="flex items-center justify-center">
@@ -108,7 +110,7 @@ const Login = () => {
                     ) : (
                         "LOGIN"
                     )}
-                </button>
+                </Button>
 
                 <p className='text-[13px] text-slate-800 mt-3 font-stack'>
                     Don't have an account?{" "}

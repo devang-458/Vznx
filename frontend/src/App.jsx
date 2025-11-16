@@ -24,49 +24,71 @@ import BulkOperationsTaskManager from './pages/Admin/BulkOperationsTaskManager'
 import AIDashboard from './pages/Admin/AIDashboard'
 import UserSettings from './pages/Settings/UserSettings'
 import Messages from './pages/Messages'
+import useSocket from './hooks/useSocket'
+import { ToastContainer, toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import NotificationPopup from './components/layouts/NotificationPopup'
 
 function App() {
   const [count, setCount] = useState(0)
 
   return (
     <UserProvider>
-      <div >
-        <Routes>
-          <Route path='/login' element={<Login />} />
-          <Route path='/signup' element={<Signup />} />
-
-          {/* { Admin Routes } */}
-          <Route element={<PrivateRoute allowedRoles={['admin']} />}>
-            <Route path='/admin/dashboard' element={<Dashboard />} />
-            <Route path='/admin/tasks' element={< ManageTasks />} />
-            <Route path='/admin/create-task' element={<CreateTask />} />
-            <Route path='/admin/insights' element={<TaskInsightsDashboard />} />
-            <Route path='/admin/bulk-operations' element={<BulkOperationsTaskManager />} />
-            <Route path='/admin/ai-dashboard' element={<AIDashboard />} />
-            <Route path='/admin/users' element={< ManageUsers />} />
-            <Route path='/admin/setting' element={<UserSettings />} />
-            <Route path='/admin/messages' element={<Messages />} />
-          </Route>
-
-          {/* { User Routes } */}
-          <Route element={<PrivateRoute allowedRoles={['user', 'member']} />} >
-            <Route path='/user/dashboard' element={<UserDashboard />} />
-            <Route path='/user/tasks' element={<MyTasks />} />
-            <Route path='/user/tasks/:id' element={<ViewTaskDetails />} />
-            <Route path='/user/create-task' element={<CreateTask />} />
-            <Route path='/user/users' element={<ManageUsers />} />
-            <Route path='/user/setting' element={<UserSettings />} />
-            <Route path='/user/messages' element={<Messages />} />
-          </Route>
-
-          {/* {default Routes} */}
-          <Route path='/' element={<Root />} />
-
-        </Routes>
-      </div>
+      <AppContent />
     </UserProvider>
   )
 }
+
+const AppContent = () => {
+  const { user } = useContext(UserContext);
+
+  const handleReceiveMessage = (newMessage) => {
+    // You might want to fetch sender's name here if not included in newMessage
+    toast.info(`New message from ${newMessage.sender}: ${newMessage.content}`);
+  };
+
+  useSocket(handleReceiveMessage);
+
+  return (
+    <div >
+      <Routes>
+        <Route path='/login' element={<Login />} />
+        <Route path='/signup' element={<Signup />} />
+
+        {/* { Admin Routes } */}
+        <Route element={<PrivateRoute allowedRoles={['admin']} />}>
+          <Route path='/admin/dashboard' element={<Dashboard />} />
+          <Route path='/admin/tasks' element={< ManageTasks />} />
+          <Route path='/admin/create-task' element={<CreateTask />} />
+          <Route path='/admin/insights' element={<TaskInsightsDashboard />} />
+          <Route path='/admin/bulk-operations' element={<BulkOperationsTaskManager />} />
+          <Route path='/admin/ai-dashboard' element={<AIDashboard />} />
+          <Route path='/admin/users' element={< ManageUsers />} />
+          <Route path='/admin/setting' element={<UserSettings />} />
+          <Route path='/admin/messages' element={<Messages />} />
+          <Route path='/admin/notification' element={<NotificationPopup />} />
+        </Route>
+
+        {/* { User Routes } */}
+        <Route element={<PrivateRoute allowedRoles={['user', 'member']} />} >
+          <Route path='/user/dashboard' element={<UserDashboard />} />
+          <Route path='/user/tasks' element={<MyTasks />} />
+          <Route path='/user/tasks/:id' element={<ViewTaskDetails />} />
+          <Route path='/user/create-task' element={<CreateTask />} />
+          <Route path='/user/users' element={<ManageUsers />} />
+          <Route path='/user/setting' element={<UserSettings />} />
+          <Route path='/user/messages' element={<Messages />} />
+          <Route path='/user/notification' element={<NotificationPopup/>} />
+        </Route>
+
+        {/* {default Routes} */}
+        <Route path='/' element={<Root />} />
+
+      </Routes>
+      <ToastContainer />
+    </div>
+  );
+};
 
 export default App
 

@@ -6,34 +6,41 @@ import axiosInstance from '../../utils/axiosinstance'
 import { API_PATHS } from '../../utils/apiPaths'
 import moment from 'moment'
 import { LuRefreshCw, LuTriangleAlert, LuCheckCheck, LuClock, LuTrendingUp, LuLightbulb, LuZap, LuBadgeAlert } from 'react-icons/lu'
+import Button from '../../components/layouts/Button'
+import useFetchData from '../../hooks/useFetchData'
 
 const TaskInsightsDashboard = () => {
     useUserAuth()
     const { user } = useContext(UserContext)
 
-    const [insights, setInsights] = useState(null)
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState('')
+    const { data: insights, loading, error, fetchData: refetchInsights } = useFetchData(
+        user ? API_PATHS.ANALYTICS.GET_INSIGHTS : null,
+        { skip: !user }
+    );
 
-    const fetchInsights = async () => {
-        setLoading(true)
-        setError('')
-        try {
-            const response = await axiosInstance.get(API_PATHS.ANALYTICS.GET_INSIGHTS)
-            setInsights(response.data)
-        } catch (error) {
-            setError('Failed to load insights')
-            console.error('Error fetching insights:', error)
-        } finally {
-            setLoading(false)
-        }
-    }
+    // const [insights, setInsights] = useState(null) // Removed
+    // const [loading, setLoading] = useState(false) // Removed
+    // const [error, setError] = useState('') // Removed
 
-    useEffect(() => {
-        if (user) {
-            fetchInsights()
-        }
-    }, [user])
+    // const fetchInsights = async () => { // Removed
+    //     setLoading(true)
+    //     setError('')
+    //     try {
+    //         const response = await axiosInstance.get(API_PATHS.ANALYTICS.GET_INSIGHTS)
+    //         setInsights(response.data)
+    //     } catch (error) {
+    //         setError('Failed to load insights')
+    //         console.error('Error fetching insights:', error)
+    //     } finally {
+    //         setLoading(false)
+    //     }
+    // }
+
+    // useEffect(() => { // Removed
+    //     if (user) {
+    //         fetchInsights()
+    //     }
+    // }, [user])
 
     if (loading && !insights) {
         return (
@@ -53,12 +60,13 @@ const TaskInsightsDashboard = () => {
             <DashboardLayout activeMenu="Task Insights">
                 <div className='card my-5 text-center py-8'>
                     <p className='text-red-600'>{error || 'No insights available'}</p>
-                    <button
-                        onClick={fetchInsights}
-                        className='mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700'
+                    <Button
+                        onClick={refetchInsights}
+                        variant="primary"
+                        className='mt-4'
                     >
                         Retry
-                    </button>
+                    </Button>
                 </div>
             </DashboardLayout>
         )
@@ -80,13 +88,14 @@ const TaskInsightsDashboard = () => {
                 {/* Header */}
                 <div className='flex justify-between items-center mb-6'>
                     <h1 className='text-2xl font-bold'>Task Insights & Analytics</h1>
-                    <button
-                        onClick={fetchInsights}
+                    <Button
+                        onClick={refetchInsights}
                         disabled={loading}
+                        variant="secondary"
                         className='flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 disabled:opacity-50'
                     >
                         <LuRefreshCw size={18} /> Refresh
-                    </button>
+                    </Button>
                 </div>
 
                 {/* Key Metrics */}

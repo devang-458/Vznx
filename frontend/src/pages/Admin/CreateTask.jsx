@@ -10,6 +10,9 @@ import { API_PATHS } from "../../utils/apiPaths";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { PRIORITY_DATA } from "../../utils/data";
 import { IoAddCircle, IoTrash } from "react-icons/io5";
+import Input from "../../components/Inputs/Input";
+import Button from "../../components/layouts/Button";
+import useFetchData from "../../hooks/useFetchData";
 
 
 const CreateTask = () => {
@@ -30,51 +33,77 @@ const CreateTask = () => {
     comment: "",
   });
 
-  const [users, setUsers] = useState([]);
+  const { data: users, loading: usersLoading, error: usersError } = useFetchData(
+    API_PATHS.USERS.GET_ALL_USERS,
+    { initialData: [] }
+  );
+
+  const { data: taskData, loading: taskLoading, error: taskFetchError } = useFetchData(
+    taskId ? API_PATHS.TASKS.GET_TASK_BY_ID(taskId) : null,
+    { skip: !taskId }
+  );
+
   const [newTodoItem, setNewTodoItem] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // This will be used for form submission
   const [error, setError] = useState("");
   const [isEditMode, setIsEditMode] = useState(false);
 
   useEffect(() => {
-    fetchUsers();
     if (taskId) {
-      fetchTaskData(taskId);
       setIsEditMode(true);
     }
-  }, [taskId]);
-
-  const fetchUsers = async () => {
-    try {
-      const response = await axiosInstance.get(API_PATHS.USERS.GET_ALL_USERS);
-      setUsers(response.data || []);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
-  };
-
-  const fetchTaskData = async (id) => {
-    try {
-      const response = await axiosInstance.get(API_PATHS.TASKS.GET_TASK_BY_ID(id));
-      const task = response.data;
-
+    if (taskData) {
       setFormData({
-        title: task.title || "",
-        description: task.description || "",
-        priority: task.priority || "Medium",
-        dueDate: task.dueDate ? task.dueDate.split("T")[0] : "",
-        assignedTo: Array.isArray(task.assignedTo)
-          ? task.assignedTo.map((u) => (typeof u === "object" ? u._id : u))
+        title: taskData.title || "",
+        description: taskData.description || "",
+        priority: taskData.priority || "Medium",
+        dueDate: taskData.dueDate ? taskData.dueDate.split("T")[0] : "",
+        assignedTo: Array.isArray(taskData.assignedTo)
+          ? taskData.assignedTo.map((u) => (typeof u === "object" ? u._id : u))
           : [],
-        todoChecklist: task.todoChecklist || [],
-        attachments: task.attachments || [],
-        comment: task.comment || "",
+        todoChecklist: taskData.todoChecklist || [],
+        attachments: taskData.attachments || [],
+        comment: taskData.comment || "",
       });
-    } catch (error) {
-      console.error("Error fetching task:", error);
-      setError("Failed to load task details");
     }
-  };
+  }, [taskId, taskData]);
+
+  // Combine loading states
+  const overallLoading = usersLoading || taskLoading || loading;
+  // Combine error states
+  const overallError = usersError || taskFetchError || error;
+
+  // const fetchUsers = async () => { // Removed
+  //   try {
+  //     const response = await axiosInstance.get(API_PATHS.USERS.GET_ALL_USERS);
+  //     setUsers(response.data || []);
+  //   } catch (error) {
+  //     console.error("Error fetching users:", error);
+  //   }
+  // };
+
+  // const fetchTaskData = async (id) => { // Removed
+  //   try {
+  //     const response = await axiosInstance.get(API_PATHS.TASKS.GET_TASK_BY_ID(id));
+  //     const task = response.data;
+
+  //     setFormData({
+  //       title: task.title || "",
+  //       description: task.description || "",
+  //       priority: task.priority || "Medium",
+  //       dueDate: task.dueDate ? task.dueDate.split("T")[0] : "",
+  //       assignedTo: Array.isArray(task.assignedTo)
+  //         ? task.assignedTo.map((u) => (typeof u === "object" ? u._id : u))
+  //         : [],
+  //       todoChecklist: task.todoChecklist || [],
+  //       attachments: task.attachments || [],
+  //       comment: task.comment || "",
+  //     });
+  //   } catch (error) {
+  //     console.error("Error fetching task:", error);
+  //     setError("Failed to load task details");
+  //   }
+  // };
 
   const handleInputChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -182,9 +211,9 @@ const CreateTask = () => {
             {isEditMode ? "Edit Task" : "Create New Task"}
           </h1>
 
-          {error && (
+          {overallError && (
             <div className="p-4 bg-red-100 border border-red-200 rounded-lg text-red-700">
-              {error}
+              {overallError}
             </div>
           )}
 
@@ -193,24 +222,24 @@ const CreateTask = () => {
 
             {/* Row 1 – Title, Priority, Date */}
             <section className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              <div className="space-y-2">
+              <div className="space-y-2  ">
                 <label className="text-sm font-medium">Title *</label>
-                <input
+                <Input
                   type="text"
                   name="title"
                   value={formData.title}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full"
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Priority *</label>
+              <div className="space-y-2 ">
+                <label className="text-sm font-medium  ">Priority *</label>
                 <select
                   name="priority"
                   value={formData.priority}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full mt-2 pr-10 bg-transparent border border-slate-300 rounded-md px-3 py-2 outline-none focus:border-primary"
                 >
                   {PRIORITY_DATA.map((item) => (
                     <option key={item.value} value={item.value}>
@@ -222,12 +251,12 @@ const CreateTask = () => {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Due Date *</label>
-                <input
+                <Input
                   type="date"
                   name="dueDate"
                   value={formData.dueDate}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full"
                 />
               </div>
             </section>
@@ -272,24 +301,26 @@ const CreateTask = () => {
             {/* Row 3 – Checklist + comment */}
             <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-              <div className="space-y-3">
+              <div className="space-y-3 ">
                 <label className="text-sm font-medium">Todo Checklist</label>
 
                 <div className="flex gap-3">
-                  <input
+                  <Input
                     type="text"
                     value={newTodoItem}
                     onChange={(e) => setNewTodoItem(e.target.value)}
-                    className="flex-1 px-3 py-2 border rounded-lg"
+                    className="flex-1 w-full"
                     placeholder="Add item"
                   />
-                  <button
+
+                  <Button
                     type="button"
                     onClick={handleAddTodoItem}
-                    className="bg-blue-600 text-white px-4 rounded-lg hover:bg-blue-700 flex items-center"
+                    variant="primary"
+                    className="flex items-center  "
                   >
                     <IoAddCircle className="mr-1" /> Add
-                  </button>
+                  </Button>
                 </div>
 
                 {formData.todoChecklist.length > 0 && (
@@ -300,13 +331,15 @@ const CreateTask = () => {
                         className="flex items-center justify-between bg-white p-2 rounded shadow-sm"
                       >
                         <span className="text-sm">{item.text}</span>
-                        <button
+                        <Button
                           type="button"
                           onClick={() => handleRemoveTodoItem(index)}
+                          variant="ghost"
+                          size="sm"
                           className="text-red-500 hover:text-red-700"
                         >
                           <IoTrash />
-                        </button>
+                        </Button>
                       </div>
                     ))}
                   </div>
@@ -345,13 +378,15 @@ const CreateTask = () => {
                       <a href={file} target="_blank" className="text-blue-600 underline">
                         {file}
                       </a>
-                      <button
+                      <Button
                         type="button"
                         onClick={() => handleRemoveAttachment(index)}
+                        variant="ghost"
+                        size="sm"
                         className="text-red-500 hover:text-red-700"
                       >
                         <IoTrash />
-                      </button>
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -360,21 +395,23 @@ const CreateTask = () => {
 
             {/* Buttons */}
             <div className="flex gap-4 pt-4">
-              <button
+              <Button
                 type="submit"
-                disabled={loading}
-                className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700"
+                disabled={overallLoading}
+                variant="primary"
+                className="flex-1"
               >
-                {loading ? (isEditMode ? "Updating..." : "Creating...") : isEditMode ? "Update Task" : "Create Task"}
-              </button>
+                {overallLoading ? (isEditMode ? "Updating..." : "Creating...") : isEditMode ? "Update Task" : "Create Task"}
+              </Button>
 
-              <button
+              <Button
                 type="button"
                 onClick={() => navigate("/admin/tasks")}
-                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                variant="secondary"
+                className="px-6 py-3"
               >
                 Cancel
-              </button>
+              </Button>
             </div>
           </form>
 

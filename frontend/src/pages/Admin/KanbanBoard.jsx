@@ -3,29 +3,37 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { IoAdd, IoEye } from 'react-icons/io5';
 import axiosInstance from '../../utils/axiosinstance';
 import moment from 'moment';
+import Button from '../../components/layouts/Button';
+import useFetchData from '../../hooks/useFetchData';
 
 export default function KanbanBoard() {
-  const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: tasksData, loading, error, fetchData: refetchTasks } = useFetchData(
+    '/api/tasks',
+    { initialData: { data: [] } }
+  );
+
+  const [tasks, setTasks] = useState([]); // Keep local state for optimistic updates
   const [selectedTask, setSelectedTask] = useState(null);
 
   const STATUS_COLUMNS = ['Pending', 'In Progress', 'Review', 'Completed'];
 
   useEffect(() => {
-    loadTasks();
-  }, []);
-
-  const loadTasks = async () => {
-    try {
-      setLoading(true);
-      const response = await axiosInstance.get('/api/tasks');
-      setTasks(response.data.data || []);
-    } catch (error) {
-      console.error('Error loading tasks:', error);
-    } finally {
-      setLoading(false);
+    if (tasksData?.data) {
+      setTasks(tasksData.data);
     }
-  };
+  }, [tasksData]);
+
+  // const loadTasks = async () => { // Removed
+  //   try {
+  //     setLoading(true);
+  //     const response = await axiosInstance.get('/api/tasks');
+  //     setTasks(response.data.data || []);
+  //   } catch (error) {
+  //     console.error('Error loading tasks:', error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const getTasksByStatus = (status) => {
     return tasks.filter(t => t.status === status);
@@ -63,7 +71,7 @@ export default function KanbanBoard() {
     } catch (error) {
       console.error('Error updating task status:', error);
       // Revert on error
-      loadTasks();
+      refetchTasks(); // Call refetchTasks from the hook
     }
   };
 
@@ -159,7 +167,9 @@ export default function KanbanBoard() {
                                 <h3 className="font-medium text-sm text-gray-900 flex-1 pr-2">
                                   {task.title}
                                 </h3>
-                                <button
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
                                   className="text-blue-600 hover:text-blue-800 text-lg"
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -167,7 +177,7 @@ export default function KanbanBoard() {
                                   }}
                                 >
                                   <IoEye />
-                                </button>
+                                </Button>
                               </div>
 
                               {task.description && (
@@ -252,12 +262,13 @@ export default function KanbanBoard() {
               )}
             </div>
 
-            <button
+            <Button
               onClick={() => setSelectedTask(null)}
-              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium"
+              variant="primary"
+              className="w-full"
             >
               Close
-            </button>
+            </Button>
           </div>
         </div>
       )}

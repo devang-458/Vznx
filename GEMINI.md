@@ -7,7 +7,10 @@ This is a full-stack AI-powered task management system. The backend is built wit
 The application provides a comprehensive suite of features for managing tasks, including:
 
 *   **Task Management:** Create, read, update, and delete tasks.
-*   **AI-Powered Features:** Leverage AI to break down tasks, suggest assignees, and schedule tasks intelligently.
+*   **AI-Powered Features:** Leverage AI to break down tasks, suggest assignees, and schedule tasks intelligently. Now with enhanced capabilities including:
+    *   **Advanced AI Model Integration:** Utilizing powerful models like Gemini 2.0 Flash for more nuanced and accurate AI assistance.
+    *   **Function Calling/Tool Use:** AI can now understand and execute specific functions within the application (e.g., creating tasks, setting reminders) through `FuncSchema` and `FuncDocumentation`.
+    *   **AI Evaluation Framework:** Includes `evaluator` functions and `Gemini Benchmark Examples` for continuous improvement and performance monitoring of AI models.
 *   **Collaboration:** Comment on tasks and react to comments.
 *   **Time Management:** Use the Pomodoro timer to stay focused and track your work.
 *   **Visualization:** View tasks on a Kanban board.

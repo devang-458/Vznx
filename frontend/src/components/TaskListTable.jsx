@@ -2,6 +2,7 @@ import React from 'react'
 import moment from 'moment/moment';
 import { IoPencil, IoTrash } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
+import Button from './layouts/Button';
 
 // Assuming props are { tableData, onDelete, showActions }
 const TaskListTable = ({ tableData, onDelete, showActions, userRole }) => {
@@ -75,23 +76,27 @@ const TaskListTable = ({ tableData, onDelete, showActions, userRole }) => {
                                 <td className="py-3 px-4 text-sm text-gray-500 whitespace-nowrap">  
                                     <div className='flex items-center gap-3'>
                                         {/* Edit Button */}
-                                        <button
+                                        <Button
                                             onClick={() => handleEdit(task._id)}
+                                            variant="ghost"
+                                            size="sm"
                                             className='text-blue-600 hover:text-blue-900 hover:bg-blue-50 p-2 rounded transition-colors'
                                             title='Edit Task'
                                         >
                                             <IoPencil className='w-4 h-4' />
-                                        </button>
+                                        </Button>
 
                                         {/* Delete Button: Only shown if the onDelete function is passed (i.e., for Admin) */}
                                         {onDelete && (
-                                            <button
+                                            <Button
                                                 onClick={() => onDelete(task._id)}
+                                                variant="ghost"
+                                                size="sm"
                                                 className='text-red-600 hover:text-red-900 hover:bg-red-50 p-2 rounded transition-colors'
                                                 title='Delete Task'
                                             >
                                                 <IoTrash className='w-4 h-4' />
-                                            </button>
+                                            </Button>
                                         )}
                                     </div>
                                 </td>

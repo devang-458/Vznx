@@ -8,6 +8,7 @@ import axiosInstance from '../../utils/axiosinstance';
 import { API_PATHS } from '../../utils/apiPaths';
 import uploadImage from "../../utils/uploadImage"
 import { UserContext } from '../../context/userContext';
+import Button from '../../components/layouts/Button';
 
 const Signup = () => {
 
@@ -144,10 +145,11 @@ const Signup = () => {
 
           {error && <p className='text-red-500 text-xs pb-2.5'>{error}</p>}
 
-          <button
+          <Button
             type='submit'
-            className='btn-primary'
+            variant='primary'
             disabled={loading}
+            className='w-full'
           >
             {loading ? (
               <div className="flex items-center justify-center">
@@ -157,7 +159,7 @@ const Signup = () => {
             ) : (
               "SIGN UP"
             )}
-          </button>
+          </Button>
 
           <p className='text-[13px] text-slate-800 mt-3 font-stack'>
             Already an account?{" "}

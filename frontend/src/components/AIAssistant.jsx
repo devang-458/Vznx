@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { IoSparkles, IoClose } from 'react-icons/io5';
 import axiosInstance from '../../utils/axiosinstance';
+import Input from '../Inputs/Input';
+import Button from '../layouts/Button';
 
 export default function AIAssistant() {
   const [isOpen, setIsOpen] = useState(false);
@@ -95,12 +97,14 @@ export default function AIAssistant() {
                 <IoSparkles className="text-xl text-purple-600" />
                 <h2 className="text-xl font-bold">AI Assistant</h2>
               </div>
-              <button
+              <Button
                 onClick={() => setIsOpen(false)}
+                variant="ghost"
                 className="text-gray-500 hover:text-gray-700"
+                size="sm"
               >
                 <IoClose className="text-2xl" />
-              </button>
+              </Button>
             </div>
 
             {/* Tabs */}
@@ -127,12 +131,12 @@ export default function AIAssistant() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Task Title</label>
-                    <input
+                    <Input
                       type="text"
                       value={breakdownInput.taskTitle}
                       onChange={(e) => setBreakdownInput({ ...breakdownInput, taskTitle: e.target.value })}
                       placeholder="e.g., Build authentication system"
-                      className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full"
                     />
                   </div>
 
@@ -147,13 +151,14 @@ export default function AIAssistant() {
                     />
                   </div>
 
-                  <button
+                  <Button
                     onClick={handleTaskBreakdown}
                     disabled={loading}
-                    className="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 font-medium"
+                    className="w-full"
+                    variant="primary"
                   >
                     {loading ? 'Analyzing...' : 'Generate Breakdown'}
-                  </button>
+                  </Button>
 
                   {breakdownResult && (
                     <div className="mt-4 p-4 bg-purple-50 rounded-lg">
@@ -194,23 +199,24 @@ export default function AIAssistant() {
 
                   <div>
                     <label className="block text-sm font-medium mb-1">Estimated Hours</label>
-                    <input
+                    <Input
                       type="number"
                       value={scheduleInput.estimatedHours}
                       onChange={(e) => setScheduleInput({ ...scheduleInput, estimatedHours: parseInt(e.target.value) || 0 })}
                       min="1"
                       max="168"
-                      className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full"
                     />
                   </div>
 
-                  <button
+                  <Button
                     onClick={handleSmartSchedule}
                     disabled={loading}
-                    className="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 font-medium"
+                    className="w-full"
+                    variant="primary"
                   >
                     {loading ? 'Calculating...' : 'Suggest Schedule'}
-                  </button>
+                  </Button>
 
                   {scheduleResult && (
                     <div className="mt-4 p-4 bg-purple-50 rounded-lg">
@@ -232,22 +238,23 @@ export default function AIAssistant() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Task ID</label>
-                    <input
+                    <Input
                       type="text"
                       value={assigneeInput.taskId}
                       onChange={(e) => setAssigneeInput({ ...assigneeInput, taskId: e.target.value })}
                       placeholder="Paste task ID"
-                      className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full"
                     />
                   </div>
 
-                  <button
+                  <Button
                     onClick={handleSuggestAssignee}
                     disabled={loading}
-                    className="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 font-medium"
+                    className="w-full"
+                    variant="primary"
                   >
                     {loading ? 'Analyzing...' : 'Get Suggestions'}
-                  </button>
+                  </Button>
 
                   {assigneeResult && (
                     <div className="mt-4 space-y-3">

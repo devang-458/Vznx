@@ -6,6 +6,9 @@ import axiosInstance from '../utils/axiosinstance';
 import { useSearchParams } from 'react-router-dom';
 import ConversationList from '../components/messages/ConversationList';
 import ChatWindow from '../components/messages/ChatWindow';
+// import useSocket from '../hooks/useSocket'; // Removed
+// import { ToastContainer, toast } from 'react-toastify'; // Removed
+// import 'react-toastify/dist/ReactToastify.css'; // Removed
 
 const initialState = {
     conversations: [],
@@ -25,6 +28,14 @@ function reducer(state, action) {
             return { ...state, selectedConversation: action.payload };
         case 'SEND_MESSAGE_SUCCESS':
             return { ...state, messages: [...state.messages, action.payload] };
+        case 'RECEIVE_MESSAGE':
+            // const sender = state.conversations.find(c => c._id === action.payload.sender); // Removed
+            // const senderName = sender ? sender.user.name : 'Unknown'; // Removed
+            // // Add logic to show a toast notification // Removed
+            // if (action.payload.sender !== state.selectedConversation) { // Removed
+            //     toast.info(`New message from ${senderName}`); // Removed
+            // } // Removed
+            return { ...state, messages: [...state.messages, action.payload] };
         case 'SET_LOADING':
             return { ...state, loading: action.payload };
         case 'SET_ERROR':
@@ -34,6 +45,7 @@ function reducer(state, action) {
     }
 }
 
+
 const Messages = () => {
     useUserAuth();
     const { user } = useContext(UserContext);
@@ -41,6 +53,8 @@ const Messages = () => {
     const userId = searchParams.get('userId');
     const [state, dispatch] = useReducer(reducer, initialState);
     const [newMessage, setNewMessage] = useState('');
+
+    // useSocket(dispatch); // Removed
 
     useEffect(() => {
         if (user) {
@@ -97,8 +111,9 @@ const Messages = () => {
     };
 
     return (
-        <DashboardLayout activeMenu="Messages">
-            <div className="flex flex-col h-screen">
+        <DashboardLayout activeMenu="Messages" className="h-screen overflow-hidden">
+
+            <div className="flex flex-col h-full">
                 <div className="flex flex-1 overflow-hidden">
                     <ConversationList
                         conversations={state.conversations}
@@ -106,20 +121,29 @@ const Messages = () => {
                         onSelectConversation={handleSelectConversation}
                         user={user}
                     />
-                    <ChatWindow
-                        messages={state.messages}
-                        selectedConversation={state.selectedConversation}
-                        onSendMessage={sendMessage}
-                        newMessage={newMessage}
-                        setNewMessage={setNewMessage}
-                        user={user}
-                        conversations={state.conversations}
-                    />
+                    {state.selectedConversation ? (
+                        <ChatWindow
+                            messages={state.messages}
+                            selectedConversation={state.selectedConversation}
+                            onSendMessage={sendMessage}
+                            newMessage={newMessage}
+                            setNewMessage={setNewMessage}
+                            user={user}
+                            conversations={state.conversations}
+                        />
+                    ) : (
+                        <div className="flex-1 flex items-center justify-center bg-gray-50">
+                            <div className="text-center">
+                                <h2 className="text-2xl font-semibold text-gray-700">Welcome to Messages</h2>
+                                <p className="text-gray-500 mt-2">Select a conversation to start chatting.</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
+            {/* <ToastContainer /> */}
         </DashboardLayout>
     );
 };
 
 export default Messages;
-

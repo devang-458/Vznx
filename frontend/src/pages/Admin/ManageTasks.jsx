@@ -8,47 +8,100 @@ import { API_PATHS } from '../../utils/apiPaths';
 import { STATUS_DATA } from '../../utils/data';
 import { IoAddCircle } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
+import Input from '../../components/Inputs/Input';
+import Button from '../../components/layouts/Button';
+import useFetchData from '../../hooks/useFetchData';
 
 const ManageTasks = () => {
+
   useUserAuth();
+
   const navigate = useNavigate();
+
   const { user } = useContext(UserContext);
 
-  const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
+
+
+  const { data: tasksData, loading, error, fetchData: refetchTasks } = useFetchData(
+
+    API_PATHS.TASKS.GET_ALL_TASKS,
+
+    { initialData: [] }
+
+  );
+
+
+
+  const tasks = Array.isArray(tasksData) ? tasksData : tasksData?.tasks || [];
+
+  // const [loading, setLoading] = useState(true); // Removed
+
   const [statusFilter, setStatusFilter] = useState('');
+
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    fetchTasks();
-  }, []);
 
-  const fetchTasks = async () => {
-    try {
-      setLoading(true);
-      const response = await axiosInstance.get(API_PATHS.TASKS.GET_ALL_TASKS);
-      // Backend returns { tasks, statusSummary } object
-      const tasksArray = response.data?.tasks || response.data || [];
-      setTasks(Array.isArray(tasksArray) ? tasksArray : []);
-    } catch (error) {
-      console.error('Error fetching tasks:', error);
-      setTasks([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+
+  // useEffect(() => { // Removed
+
+  //   fetchTasks();
+
+  // }, []);
+
+
+
+  // const fetchTasks = async () => { // Removed
+
+  //   try {
+
+  //     setLoading(true);
+
+  //     const response = await axiosInstance.get(API_PATHS.TASKS.GET_ALL_TASKS);
+
+  //     // Backend returns { tasks, statusSummary } object
+
+  //     const tasksArray = response.data?.tasks || response.data || [];
+
+  //     setTasks(Array.isArray(tasksArray) ? tasksArray : []);
+
+  //   } catch (error) {
+
+  //     console.error('Error fetching tasks:', error);
+
+  //     setTasks([]);
+
+  //   } finally {
+
+  //     setLoading(false);
+
+  //   }
+
+  // };
+
+
 
   const handleDeleteTask = async (taskId) => {
+
     if (window.confirm('Are you sure you want to delete this task?')) {
+
       try {
+
         await axiosInstance.delete(API_PATHS.TASKS.DELETE_TASK(taskId));
-        setTasks(tasks.filter(task => task._id !== taskId));
+
         alert('Task deleted successfully!');
+
+        refetchTasks(); // Call refetchTasks from the hook
+
       } catch (error) {
+
         console.error('Error deleting task:', error);
+
         alert('Failed to delete task');
+
       }
+
     }
+
   };
 
   // Filter tasks based on search term and status
@@ -67,12 +120,13 @@ const ManageTasks = () => {
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-3xl font-bold text-gray-900">Manage Tasks</h1>
             {user?.role === 'admin' && (
-              <button
+              <Button
                 onClick={() => navigate('/admin/create-task')}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+                variant="primary"
+                className="flex items-center gap-2"
               >
                 <IoAddCircle /> Create Task
-              </button>
+              </Button>
             )}
           </div>
 
@@ -80,19 +134,19 @@ const ManageTasks = () => {
           <div className="bg-white rounded-lg shadow-md p-6 mb-6">
             <div className="flex flex-col md:flex-row gap-4">
               {/* Search Input */}
-              <input
+              <Input
                 type="text"
                 placeholder="Search tasks by title or description..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="input-field flex-1"
+                className="input-field flex-1 "
               />
 
               {/* Status Filter */}
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="input-field max-w-xs"
+                className="input-field max-w-xs input-box"
               >
                 <option value="">All Tasks</option>
                 {STATUS_DATA.map((status) => (

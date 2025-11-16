@@ -20,6 +20,8 @@ import TaskListTable from '../../components/TaskListTable'
 import CustomPieChart from '../../components/Charts/CustomPieChart'
 import CustomBarChart from '../../components/Charts/CustomBarChart'
 import { motion, AnimatePresence } from 'framer-motion'
+import Button from '../../components/layouts/Button'
+import useFetchData from '../../hooks/useFetchData'
 
 const COLORS = ["#3B82F6", "#F59E0B", "#06B6D4", "#10B981"]
 
@@ -52,11 +54,16 @@ const UserDashboard = () => {
   const navigate = useNavigate()
   const { user } = useContext(UserContext)
 
-  const [dashboardData, setDashboardData] = useState(null)
+  const { data: dashboardData, loading, error, fetchData: refetchDashboardData } = useFetchData(
+    user ? API_PATHS.TASKS.GET_USER_DASHBOARD_DATA : null,
+    { skip: !user }
+  );
+
+  // const [dashboardData, setDashboardData] = useState(null) // Removed
   const [pieChartData, setPieChartData] = useState([])
   const [barChartData, setBarChartData] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  // const [loading, setLoading] = useState(false) // Removed
+  // const [error, setError] = useState(null) // Removed
   const [fabOpen, setFabOpen] = useState(false)
   const [filter, setFilter] = useState({ status: 'all', mineOnly: false })
   const [modalTask, setModalTask] = useState(null)
@@ -85,31 +92,34 @@ const UserDashboard = () => {
     setBarChartData(priorityLevelData)
   }
 
-  const getDashboardData = async () => {
-    if (!user) return
-    setLoading(true)
-    setError(null)
+  // const getDashboardData = async () => { // Removed
+  //   if (!user) return
+  //   setLoading(true)
+  //   setError(null)
 
-    try {
-      const response = await axiosInstance.get(API_PATHS.TASKS.GET_USER_DASHBOARD_DATA)
-      const normalized = normalizeDashboardResponse(response.data)
-      setDashboardData(normalized)
-      prepareChartData(normalized.charts)
-    } catch (err) {
-      console.error('Error fetching user dashboard data', err)
-      setError('Failed to load dashboard data')
-      setDashboardData({ charts: { taskDistribution: {}, taskPriorityLevels: {} }, recentTasks: [] })
-      setPieChartData([])
-      setBarChartData([])
-    } finally {
-      setLoading(false)
-    }
-  }
+  //   try {
+  //     const response = await axiosInstance.get(API_PATHS.TASKS.GET_USER_DASHBOARD_DATA)
+  //     const normalized = normalizeDashboardResponse(response.data)
+  //     setDashboardData(normalized)
+  //     prepareChartData(normalized.charts)
+  //   } catch (err) {
+  //     console.error('Error fetching user dashboard data', err)
+  //     setError('Failed to load dashboard data')
+  //     setDashboardData({ charts: { taskDistribution: {}, taskPriorityLevels: {} }, recentTasks: [] })
+  //     setPieChartData([])
+  //     setBarChartData([])
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // }
 
   useEffect(() => {
-    if (user) getDashboardData()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user])
+    if (dashboardData) {
+      const normalized = normalizeDashboardResponse(dashboardData);
+      // setDashboardData(normalized); // No longer needed as dashboardData is from hook
+      prepareChartData(normalized.charts);
+    }
+  }, [dashboardData]);
 
   const totals = dashboardData?.charts?.taskDistribution || {}
   const totalAll = totals?.All || ((totals.Pending || 0) + (totals.InProgress || 0) + (totals.Completed || 0))
@@ -132,6 +142,10 @@ const UserDashboard = () => {
     navigate('/user/tasks/create')
   }
 
+  const sendMessage = () => {
+    navigate('/user/messages')
+  }
+
   const TaskModal = ({ task, onClose }) => {
     if (!task) return null
     return (
@@ -149,9 +163,9 @@ const UserDashboard = () => {
                 </div>
               </div>
               <div className="text-right">
-                <button className="text-sm text-blue-600" onClick={() => { navigator.clipboard?.writeText(window.location.href); }}>Share</button>
+                <Button variant="ghost" size="sm" className="text-blue-600" onClick={() => { navigator.clipboard?.writeText(window.location.href); }}>Share</Button>
                 <div className="mt-3">
-                  <button className="btn-primary" onClick={() => { onClose(); navigate(`/tasks/${task._id || task.id}`); }}>Open Task</button>
+                  <Button variant="primary" onClick={() => { onClose(); navigate(`/tasks/${task._id || task.id}`); }}>Open Task</Button>
                 </div>
               </div>
             </div>
@@ -177,7 +191,7 @@ const UserDashboard = () => {
               <div className="mt-3 inline-flex items-center gap-3 bg-red-50 border border-red-100 text-red-700 px-3 py-2 rounded">
                 <FiZap />
                 <div className="text-sm">{potentialOverdue.length} task(s) may miss deadline — check Recent Tasks.</div>
-                <button className="ml-4 text-sm underline" onClick={() => { setFilter(f => ({ ...f, status: 'all', mineOnly: false })); window.scrollTo({ top: 800, behavior: 'smooth' }); }}>View</button>
+                <Button variant="ghost" size="sm" className="ml-4 text-sm underline" onClick={() => { setFilter(f => ({ ...f, status: 'all', mineOnly: false })); window.scrollTo({ top: 800, behavior: 'smooth' }); }}>View</Button>
               </div>
             )}
           </div>
@@ -197,8 +211,8 @@ const UserDashboard = () => {
               </label>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <button className="border-black border p-2.5 rounded-full " onClick={createTask}><LuMessageCircle  /></button>
-              <button className="btn-primary" onClick={createTask}>+ New Task</button>
+              <button className="border-black border p-2.5 rounded-full " onClick={sendMessage}><LuMessageCircle  /></button>
+              <Button variant="primary" onClick={createTask}>+ New Task</Button>
             </div>
           </div>
         </div>
@@ -243,8 +257,8 @@ const UserDashboard = () => {
               <h5 className="font-medium">Recent Tasks</h5>
               <div className="flex items-center gap-3">
                 <div className="text-sm text-gray-600">Completion: <strong>{completionRate}%</strong></div>
-                <button className="text-sm text-gray-600" onClick={() => getDashboardData()}>Refresh</button>
-                <button className="flex items-center gap-2 text-sm text-blue-600" onClick={onSeeMore}>See All <LuSquareArrowRight /></button>
+                <Button variant="ghost" size="sm" className="text-gray-600" onClick={() => refetchDashboardData()}>Refresh</Button>
+                <Button variant="ghost" size="sm" className="flex items-center gap-2 text-blue-600" onClick={onSeeMore}>See All <LuSquareArrowRight /></Button>
               </div>
             </div>
 
@@ -263,20 +277,20 @@ const UserDashboard = () => {
                 {fabOpen && (
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute right-0 bottom-20 w-52 bg-white rounded-xl shadow-xl p-3">
                     <div className="flex flex-col gap-2">
-                      <button className="flex items-center gap-3 px-3 py-2 rounded hover:bg-gray-100 text-left" onClick={() => { navigate('/user/tasks/create'); setFabOpen(false); }}>
+                      <Button variant="ghost" className="flex items-center gap-3 px-3 py-2 rounded hover:bg-gray-100 text-left" onClick={() => { navigate('/user/tasks/create'); setFabOpen(false); }}>
                         <LuCirclePlus />
                         <span className="text-sm">Create Task</span>
-                      </button>
+                      </Button>
 
-                      <button className="flex items-center gap-3 px-3 py-2 rounded hover:bg-gray-100 text-left" onClick={() => { alert('AI Insights placeholder — hook up your AI endpoint here'); setFabOpen(false); }}>
+                      <Button variant="ghost" className="flex items-center gap-3 px-3 py-2 rounded hover:bg-gray-100 text-left" onClick={() => { alert('AI Insights placeholder — hook up your AI endpoint here'); setFabOpen(false); }}>
                         <FiZap />
                         <span className="text-sm">AI Insights</span>
-                      </button>
+                      </Button>
 
-                      <button className="flex items-center gap-3 px-3 py-2 rounded hover:bg-gray-100 text-left" onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); setFabOpen(false); }}>
+                      <Button variant="ghost" className="flex items-center gap-3 px-3 py-2 rounded hover:bg-gray-100 text-left" onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); setFabOpen(false); }}>
                         <LuSquareArrowRight />
                         <span className="text-sm">View Summary</span>
-                      </button>
+                      </Button>
                     </div>
                   </motion.div>
                 )}

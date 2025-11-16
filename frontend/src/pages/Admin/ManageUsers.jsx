@@ -7,14 +7,22 @@ import { API_PATHS } from '../../utils/apiPaths';
 import { IoAddCircle, IoDownload, IoPencil, IoTrash, IoClose, IoChatbubbleEllipses } from 'react-icons/io5';
 import { addThousandsSeparator } from '../../utils/helper';
 import { useNavigate } from 'react-router-dom';
+import Input from '../../components/Inputs/Input';
+import Button from '../../components/layouts/Button';
+import useFetchData from '../../hooks/useFetchData';
 
 const ManageUsers = () => {
   useUserAuth();
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
 
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const { data: users, loading, error, fetchData: refetchUsers } = useFetchData(
+    user ? API_PATHS.USERS.GET_ALL_USERS : null,
+    { initialData: [], skip: !user }
+  );
+
+  // const [users, setUsers] = useState([]); // Removed
+  // const [loading, setLoading] = useState(false); // Removed
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [formData, setFormData] = useState({
@@ -24,25 +32,25 @@ const ManageUsers = () => {
     role: 'member'
   });
 
-  useEffect(() => {
-    if (user) {
-      fetchUsers();
-    }
-  }, [user]);
+  // useEffect(() => { // Removed
+  //   if (user) {
+  //     fetchUsers();
+  //   }
+  // }, [user]);
 
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const response = await axiosInstance.get(API_PATHS.USERS.GET_ALL_USERS);
-      console.log('Users fetched:', response.data);
-      setUsers(response.data || []);
-    } catch (error) {
-      console.error(' Error fetching users:', error);
-      alert('Failed to load users');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const fetchUsers = async () => { // Removed
+  //   setLoading(true);
+  //   try {
+  //     const response = await axiosInstance.get(API_PATHS.USERS.GET_ALL_USERS);
+  //     console.log('Users fetched:', response.data);
+  //     setUsers(response.data || []);
+  //   } catch (error) {
+  //     console.error(' Error fetching users:', error);
+  //     alert('Failed to load users');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const handleExportUsers = async () => {
     try {
@@ -138,7 +146,7 @@ const ManageUsers = () => {
       }
 
       handleCloseModal();
-      fetchUsers();
+      refetchUsers(); // Call refetchUsers from the hook
     } catch (error) {
       console.error(' Error saving user:', error);
       alert(error.response?.data?.message || 'Failed to save user');
@@ -151,13 +159,12 @@ const ManageUsers = () => {
     try {
       await axiosInstance.delete(API_PATHS.USERS.DELETE_USER(userId));
       alert('User deleted successfully');
-      fetchUsers();
+      refetchUsers(); // Call refetchUsers from the hook
     } catch (error) {
       console.error(' Error deleting user:', error);
       alert('Failed to delete user');
     }
   };
-
   return (
     <DashboardLayout activeMenu="Team Members">
       <div className="my-5">
@@ -171,18 +178,20 @@ const ManageUsers = () => {
             </div>
 
             <div className="flex gap-3">
-              <button
+              <Button
                 onClick={handleExportUsers}
-                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors font-medium flex items-center gap-2"
+                variant="secondary"
+                className="flex items-center gap-2"
               >
                 <IoDownload /> Export
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => handleOpenModal()}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+                variant="primary"
+                className="flex items-center gap-2"
               >
                 <IoAddCircle /> Add Member
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -252,27 +261,33 @@ const ManageUsers = () => {
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex justify-center gap-2">
-                            <button
+                            <Button
                               onClick={() => handleOpenModal(u)}
+                              variant="ghost"
+                              size="sm"
                               className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                               title="Edit User"
                             >
                               <IoPencil size={18} />
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                               onClick={() => navigate(`/admin/messages?userId=${u._id}`)}
+                              variant="ghost"
+                              size="sm"
                               className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                               title="Message User"
                             >
                               <IoChatbubbleEllipses size={18} />
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                               onClick={() => handleDeleteUser(u._id)}
+                              variant="ghost"
+                              size="sm"
                               className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                               title="Delete User"
                             >
                               <IoTrash size={18} />
-                            </button>
+                            </Button>
                           </div>
                         </td>
                       </tr>
@@ -293,12 +308,13 @@ const ManageUsers = () => {
               <h3 className="text-xl font-semibold text-gray-800">
                 {editingUser ? 'Edit User' : 'Add New User'}
               </h3>
-              <button
+              <Button
                 onClick={handleCloseModal}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
+                variant="ghost"
+                className="text-gray-500 hover:text-gray-700"
               >
                 <IoClose size={24} />
-              </button>
+              </Button>
             </div>
 
             <form onSubmit={handleSubmit}>
@@ -306,12 +322,12 @@ const ManageUsers = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Name <span className="text-red-500">*</span>
                 </label>
-                <input
+                <Input
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full"
                   placeholder="Enter full name"
                   required
                 />
@@ -321,12 +337,12 @@ const ManageUsers = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Email <span className="text-red-500">*</span>
                 </label>
-                <input
+                <Input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full"
                   placeholder="email@example.com"
                   required
                 />
@@ -337,17 +353,16 @@ const ManageUsers = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Password <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter password"
-                    required={!editingUser}
-                    minLength="6"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
+                                  <Input
+                                    type="password"
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleInputChange}
+                                    className="w-full"
+                                    placeholder="Enter password"
+                                    required={!editingUser}
+                                    minLength="6"
+                                  />                  <p className="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
                 </div>
               )}
 
@@ -367,19 +382,21 @@ const ManageUsers = () => {
               </div>
 
               <div className="flex gap-3">
-                <button
+                <Button
                   type="submit"
-                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  variant="primary"
+                  className="flex-1"
                 >
                   {editingUser ? 'Update User' : 'Create User'}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={handleCloseModal}
-                  className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                  variant="secondary"
+                  className="px-4 py-2"
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             </form>
           </div>

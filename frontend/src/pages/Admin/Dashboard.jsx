@@ -14,7 +14,7 @@ import {
   IoHourglass,
   IoCheckmarkCircle
 } from "react-icons/io5";
-import { LuSquareArrowRight, LuCirclePlus } from 'react-icons/lu';
+import { LuSquareArrowRight, LuCirclePlus, LuMessageCircle, LuUsers, LuBell } from 'react-icons/lu';
 import { FiZap } from 'react-icons/fi';
 
 import { useNavigate } from 'react-router-dom';
@@ -22,6 +22,8 @@ import TaskListTable from '../../components/TaskListTable';
 import CustomPieChart from '../../components/Charts/CustomPieChart';
 import CustomBarChart from '../../components/Charts/CustomBarChart';
 import { motion, AnimatePresence } from 'framer-motion';
+import Button from '../../components/layouts/Button';
+import useFetchData from '../../hooks/useFetchData';
 
 const COLORS = ["#3B82F6", "#F59E0B", "#06B6D4", "#10B981"];
 
@@ -41,34 +43,70 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useContext(UserContext);
 
-  const [dashboardData, setDashboardData] = useState(null);
+  const { data: dashboardData, loading, error, fetchData: refetchDashboardData } = useFetchData(
+    user ? API_PATHS.TASKS.GET_DASHBOARD_DATA : null,
+    { skip: !user }
+  );
+
+  // const [dashboardData, setDashboardData] = useState(null); // Removed
   const [pieChartData, setPieChartData] = useState([]);
   const [barChartData, setBarChartData] = useState([]);
   const [filter, setFilter] = useState({ status: 'all', mineOnly: false });
   const [modalTask, setModalTask] = useState(null);
   const [fabOpen, setFabOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  // const [loading, setLoading] = useState(false); // Removed
+  // const [error, setError] = useState(null); // Removed
 
   // Load dashboard data
-  const getDashboardData = async () => {
-    if (!user) return;
+  // const getDashboardData = async () => { // Removed
+  //   if (!user) return;
 
-    setLoading(true);
-    setError(null);
+  //   setLoading(true);
+  //   setError(null);
 
-    try {
-      const res = await axiosInstance.get(API_PATHS.TASKS.GET_DASHBOARD_DATA);
+  //   try {
+  //     const res = await axiosInstance.get(API_PATHS.TASKS.GET_DASHBOARD_DATA);
 
+  //     const normalized = {
+  //       charts: res.data?.charts || {
+  //         taskDistribution: res.data?.taskDistribution || {},
+  //         taskPriorityLevels: res.data?.taskPriorityLevels || {}
+  //       },
+  //       recentTasks: res.data?.recentTasks || []
+  //     };
+
+  //     setDashboardData(normalized);
+
+  //     setPieChartData([
+  //       { name: "Pending", value: normalized.charts.taskDistribution?.Pending || 0 },
+  //       { name: "In Progress", value: normalized.charts.taskDistribution["In Progress"] || normalized.charts.taskDistribution?.InProgress || 0 },
+  //       { name: "Completed", value: normalized.charts.taskDistribution?.Completed || 0 }
+  //     ]);
+
+  //     setBarChartData([
+  //       { name: "Low", value: normalized.charts.taskPriorityLevels?.Low || 0 },
+  //       { name: "Medium", value: normalized.charts.taskPriorityLevels?.Medium || 0 },
+  //       { name: "High", value: normalized.charts.taskPriorityLevels?.High || 0 }
+  //     ]);
+
+  //   } catch (err) {
+  //     console.error(err);
+  //     setError("Failed to load dashboard data.");
+  //   }
+
+  //   setLoading(false);
+  // };
+
+  useEffect(() => {
+    // if (user) getDashboardData(); // Replaced by hook's internal fetch
+    if (dashboardData) {
       const normalized = {
-        charts: res.data?.charts || {
-          taskDistribution: res.data?.taskDistribution || {},
-          taskPriorityLevels: res.data?.taskPriorityLevels || {}
+        charts: dashboardData?.charts || {
+          taskDistribution: dashboardData?.taskDistribution || {},
+          taskPriorityLevels: dashboardData?.taskPriorityLevels || {}
         },
-        recentTasks: res.data?.recentTasks || []
+        recentTasks: dashboardData?.recentTasks || []
       };
-
-      setDashboardData(normalized);
 
       setPieChartData([
         { name: "Pending", value: normalized.charts.taskDistribution?.Pending || 0 },
@@ -81,27 +119,21 @@ const Dashboard = () => {
         { name: "Medium", value: normalized.charts.taskPriorityLevels?.Medium || 0 },
         { name: "High", value: normalized.charts.taskPriorityLevels?.High || 0 }
       ]);
-
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load dashboard data.");
     }
-
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    if (user) getDashboardData();
-  }, [user]);
+  }, [dashboardData]); // Dependency changed to dashboardData
 
   // New Task button logic
   const createTask = () => {
     if (user?.role === "admin") {
-      navigate("/tasks/create");
+      navigate("/admin/create-task");
     } else {
-      navigate("/tasks/create");
+      navigate("/user/create-task");
     }
   };
+
+  const sendMassage = () => {
+    navigate("/admin/messages")
+  }
 
   const totals = dashboardData?.charts?.taskDistribution || {};
   const totalAll = (totals.Pending || 0) + (totals["In Progress"] || totals.InProgress || 0) + (totals.Completed || 0);
@@ -155,12 +187,13 @@ const Dashboard = () => {
               <div className="px-2 py-1 rounded bg-gray-200">Due: {moment(task.dueDate).format("MMM D")}</div>
             </div>
 
-            <button
-              className="btn-primary mt-5"
+            <Button
+              variant="primary"
+              className="mt-5"
               onClick={() => navigate(`/tasks/${task._id}`)}
             >
               Open Task
-            </button>
+            </Button>
           </motion.div>
         </motion.div>
       </AnimatePresence>
@@ -191,31 +224,23 @@ const Dashboard = () => {
 
           {/* Filter + New Task */}
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-white border rounded-full px-3 py-1 shadow-sm">
-              <select
-                className="text-sm outline-none"
-                value={filter.status}
-                onChange={(e) => setFilter(f => ({ ...f, status: e.target.value }))}
-              >
+
+            <div className="flex items-center gap-2  bg-white border rounded-full px-3 py-1 shadow-sm">
+              <select className="text-sm outline-none" value={filter.status} onChange={(e) => setFilter(f => ({ ...f, status: e.target.value }))}>
                 <option value="all">All statuses</option>
                 <option value="Pending">Pending</option>
-                <option value="In Progress">In Progress</option>
+                <option value="InProgress">In Progress</option>
                 <option value="Completed">Completed</option>
               </select>
-
-              <label className="flex items-center gap-2 text-xs text-gray-600">
-                <input
-                  type="checkbox"
-                  checked={filter.mineOnly}
-                  onChange={(e) => setFilter(f => ({ ...f, mineOnly: e.target.checked }))}
-                />
-                My tasks only
+              <label className="ml-2 text-sm text-gray-600 flex items-center gap-2">
+                <input type="checkbox" checked={filter.mineOnly} onChange={(e) => setFilter(f => ({ ...f, mineOnly: e.target.checked }))} />
+                <span className="text-xs p-1.5 flex flex-row w-22">My tasks only</span>
               </label>
             </div>
-
-            <button className="btn-primary" onClick={createTask}>
-              + New Task
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button className="border-black border p-2.5 rounded-full " onClick={sendMassage}><LuMessageCircle /></button>
+              <Button variant="primary" onClick={createTask}>+ New Task</Button>
+            </div>
           </div>
         </div>
 
@@ -243,9 +268,9 @@ const Dashboard = () => {
           <div className="md:col-span-2 bg-white rounded-2xl p-6 shadow-md">
             <div className="flex items-center justify-between mb-4">
               <h5 className="font-medium">Recent Tasks</h5>
-              <button className="text-sm text-blue-600" onClick={getDashboardData}>
+              <Button variant="ghost" size="sm" className="text-blue-600" onClick={refetchDashboardData}>
                 Refresh
-              </button>
+              </Button>
             </div>
 
             <TaskListTable tableData={filteredTasks} onRowClick={task => setModalTask(task)} />
@@ -263,12 +288,13 @@ const Dashboard = () => {
 
           {fabOpen && (
             <div className="absolute bottom-20 right-0 bg-white shadow-xl rounded-xl p-3 w-48">
-              <button
+              <Button
+                variant="ghost"
                 className="flex items-center gap-2 py-2"
-                onClick={() => navigate("/tasks/create")}
+                onClick={createTask}
               >
                 <LuCirclePlus /> Create Task
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -277,7 +303,7 @@ const Dashboard = () => {
 
         {error && <p className="text-red-600 mt-4">{error}</p>}
       </div>
-    </DashboardLayout>
+    </DashboardLayout >
   );
 };
 

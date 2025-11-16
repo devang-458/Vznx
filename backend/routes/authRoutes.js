@@ -10,20 +10,29 @@ const {
     deleteAccount,
     exportUserData
 } = require("../controller/authController.js");
-const { protect } = require("../middleware/authMiddleware.js")
+const { protect } = require("../middleware/authMiddleware.js");
+const validate = require('../middleware/validationMiddleware.js'); // Import validate middleware
+const { 
+    registerSchema, 
+    loginSchema, 
+    updateProfileSchema, 
+    updatePreferencesSchema, 
+    updateNotificationSettingsSchema, 
+    deleteAccountSchema 
+} = require('../validation/authValidation.js'); // Import Joi schemas
 const upload = require("../middleware/uploadMiddleware.js")
 
 const router = Router();
 
-router.post('/register', registerUser)
-router.post('/login', loginUser)
-router.get('/profile', protect, getUserProfile)
-router.put('/profile', protect, updateUserProfile)
-router.get('/preferences', protect, getPreferences)
-router.put('/preferences', protect, updatePreferences)
-router.put('/notifications', protect, updateNotificationSettings)
-router.delete('/account', protect, deleteAccount)
-router.get('/export-data', protect, exportUserData)
+router.post('/register', validate(registerSchema), registerUser);
+router.post('/login', validate(loginSchema), loginUser);
+router.get('/profile', protect, getUserProfile);
+router.put('/profile', protect, validate(updateProfileSchema), updateUserProfile);
+router.get('/preferences', protect, getPreferences);
+router.put('/preferences', protect, validate(updatePreferencesSchema), updatePreferences);
+router.put('/notifications', protect, validate(updateNotificationSettingsSchema), updateNotificationSettings);
+router.delete('/account', protect, validate(deleteAccountSchema), deleteAccount);
+router.get('/export-data', protect, exportUserData);
 
 router.post("/upload-image", upload.single('image'), (req, res) => {
     if (!req.file) {

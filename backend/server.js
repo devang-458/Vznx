@@ -16,9 +16,15 @@ const settingsRoutes = require('./routes/settingsRoutes.js');
 const commentRoutes = require('./routes/commentRoutes.js');
 const aiRoutes = require('./routes/aiRoutes.js');
 const messageRoutes = require('./routes/messageRoutes.js');
+const { initSocket } = require('./socket.js');
+const http = require('http');
+const errorHandler = require('./middleware/errorHandler.js'); // Import the new error handler
 
 
 const app = express();
+const server = http.createServer(app);
+
+initSocket(server);
 
 app.use(cors({
   origin: [
@@ -58,10 +64,7 @@ app.use('/api/messages', messageRoutes);
 app.use("/upload", express.static(path.join(__dirname, "uploads")));
 
 // Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: "Something went wrong", error: err.message });
-});
+app.use(errorHandler);
 
 // 404 handler
 app.use((req, res) => {
@@ -70,6 +73,6 @@ app.use((req, res) => {
 
 // Start Server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

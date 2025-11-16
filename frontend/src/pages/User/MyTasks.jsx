@@ -16,16 +16,27 @@ import {
 import { addThousandsSeparator } from '../../utils/helper';
 import TaskCard from '../../components/Cards/TaskCard';
 import InfoCard from "../../components/Cards/InfoCard";
+import Button from '../../components/layouts/Button';
+import useFetchData from '../../hooks/useFetchData';
 
 const MyTasks = () => {
   useUserAuth();
   const navigate = useNavigate();
   const { user } = useContext(UserContext);
 
+  const [statusFilter, setStatusFilter] = useState('');
+  const tasksUrl = statusFilter
+    ? `${API_PATHS.TASKS.GET_ALL_TASKS}?status=${statusFilter}`
+    : API_PATHS.TASKS.GET_ALL_TASKS;
+
+  const { data: tasksResponse, loading, error, fetchData: refetchTasks } = useFetchData(
+    user ? tasksUrl : null,
+    { skip: !user, dependencies: [statusFilter] }
+  );
+
   const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
-  const [statusFilter, setStatusFilter] = useState('');
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false); // Removed
   const [statusSummary, setStatusSummary] = useState({
     all: 0,
     pendingTasks: 0,
@@ -41,53 +52,60 @@ const MyTasks = () => {
 
   const PaginationButtons = () => (
     <div className="flex gap-2 items-center ">
-      <button
-        className="btn-secondary px-3 py-1 rounded disabled:opacity-50"
+      <Button
+        variant="secondary"
+        size="sm"
         disabled={page === 1}
         onClick={() => setPage(p => Math.max(p - 1, 1))}
       >
         Previous
-      </button>
+      </Button>
       <span className="text-sm text-gray-600">
         Page {page} of {totalPages || 1}
       </span>
-      <button
-        className="btn-secondary px-3 py-1 rounded disabled:opacity-50"
+      <Button
+        variant="secondary"
+        size="sm"
         disabled={page === totalPages || totalPages === 0}
         onClick={() => setPage(p => Math.min(p + 1, totalPages))}
       >
         Next
-      </button>
+      </Button>
     </div>
   );
 
-  const fetchTasks = async (status = '') => {
-    setLoading(true);
-    try {
-      const url = status
-        ? `${API_PATHS.TASKS.GET_ALL_TASKS}?status=${status}`
-        : API_PATHS.TASKS.GET_ALL_TASKS;
+  // const fetchTasks = async (status = '') => { // Removed
+  //   setLoading(true);
+  //   try {
+  //     const url = status
+  //       ? `${API_PATHS.TASKS.GET_ALL_TASKS}?status=${status}`
+  //       : API_PATHS.TASKS.GET_ALL_TASKS;
 
-      const response = await axiosInstance.get(url);
+  //     const response = await axiosInstance.get(url);
 
-      setTasks(response.data.tasks || []);
-      setFilteredTasks(response.data.tasks || []);
-      setStatusSummary(response.data.statusSummary || statusSummary);
-      setPage(1); // reset to first page
-    } catch (error) {
-      console.error('Error fetching tasks:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     setTasks(response.data.tasks || []);
+  //     setFilteredTasks(response.data.tasks || []);
+  //     setStatusSummary(response.data.statusSummary || statusSummary);
+  //     setPage(1); // reset to first page
+  //   } catch (error) {
+  //     console.error('Error fetching tasks:', error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   useEffect(() => {
-    if (user) fetchTasks();
-  }, [user]);
+    if (tasksResponse) {
+      setTasks(tasksResponse.tasks || []);
+      setFilteredTasks(tasksResponse.tasks || []);
+      setStatusSummary(tasksResponse.statusSummary || statusSummary);
+      setPage(1); // reset to first page
+    }
+  }, [tasksResponse]);
 
   const handleFilterChange = (status) => {
     setStatusFilter(status);
-    fetchTasks(status);
+    // fetchTasks(status); // Removed, now handled by useFetchData dependency
   };
 
   const handleViewTask = (taskId) => {

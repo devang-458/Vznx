@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { IoClose, IoHeartOutline, IoHeart, IoThumbsUp, IoReaderOutline } from 'react-icons/io5';
 import axiosInstance from '../../utils/axiosinstance';
 import moment from 'moment';
+import Button from '../layouts/Button';
 
 export default function TaskComments({ taskId, isOpen, onClose }) {
   const [comments, setComments] = useState([]);
@@ -88,9 +89,9 @@ export default function TaskComments({ taskId, isOpen, onClose }) {
           <h2 className="text-xl font-bold flex items-center gap-2">
             <IoReaderOutline /> Comments ({comments.length})
           </h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <Button onClick={onClose} variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700">
             <IoClose className="text-2xl" />
-          </button>
+          </Button>
         </div>
 
         {/* Comments List */}
@@ -123,46 +124,55 @@ export default function TaskComments({ taskId, isOpen, onClose }) {
 
                   {/* Reactions */}
                   <div className="flex items-center gap-2 mt-2">
-                    <button
+                    <Button
                       onClick={() => handleReaction(comment._id, '👍')}
+                      variant="ghost"
+                      size="sm"
                       className="text-xs hover:bg-white px-2 py-1 rounded transition"
                     >
                       👍 {comment.reactions?.filter(r => r.emoji === '👍').length || 0}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={() => handleReaction(comment._id, '❤️')}
+                      variant="ghost"
+                      size="sm"
                       className="text-xs hover:bg-white px-2 py-1 rounded transition"
                     >
                       ❤️ {comment.reactions?.filter(r => r.emoji === '❤️').length || 0}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={() => handleReaction(comment._id, '🎉')}
+                      variant="ghost"
+                      size="sm"
                       className="text-xs hover:bg-white px-2 py-1 rounded transition"
                     >
                       🎉 {comment.reactions?.filter(r => r.emoji === '🎉').length || 0}
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
                 {/* Delete Button */}
-                <button
+                <Button
                   onClick={() => handleDeleteComment(comment._id)}
+                  variant="ghost"
+                  size="sm"
                   className="text-gray-400 hover:text-red-500 transition"
                   title="Delete comment"
                 >
                   <IoClose className="text-lg" />
-                </button>
+                </Button>
               </div>
             </div>
           ))}
 
           {comments.length > 0 && (
-            <button
+            <Button
               onClick={() => setPage(prev => prev + 1)}
-              className="w-full py-2 text-center text-blue-600 hover:text-blue-700 font-medium text-sm"
+              variant="ghost"
+              className="w-full text-blue-600 hover:text-blue-700 font-medium text-sm"
             >
               Load More Comments
-            </button>
+            </Button>
           )}
         </div>
 
@@ -178,17 +188,19 @@ export default function TaskComments({ taskId, isOpen, onClose }) {
             />
             <div className="flex items-center justify-between">
               <div className="flex gap-2">
-                <button type="button" className="text-gray-500 hover:text-gray-700 p-2">
+                <Button type="button" variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700">
                   📎
-                </button>
+                </Button>
               </div>
-              <button
+              <Button
                 type="submit"
                 disabled={!newComment.trim() || loading}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium text-sm"
+                variant="primary"
+                size="sm"
+                className="px-6 py-2"
               >
                 {loading ? 'Posting...' : 'Post Comment'}
-              </button>
+              </Button>
             </div>
           </form>
         </div>

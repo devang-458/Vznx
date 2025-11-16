@@ -14,6 +14,7 @@ import {
 import {
   IoIosAlert
 } from "react-icons/io"
+import Button from '../../components/layouts/Button'
 
 const AIDashboard = () => {
   const { user } = useContext(UserContext)
@@ -288,12 +289,14 @@ const AIDashboard = () => {
               <LuBrain className="text-purple-600" size={40} />
               AI-Powered Dashboard
             </h1>
-            <button
+            <Button
               onClick={() => window.location.reload()}
+              variant="ghost"
+              size="sm"
               className="p-2 hover:bg-white rounded-lg transition-colors"
             >
               <LuRefreshCw size={24} className="text-gray-600" />
-            </button>
+            </Button>
           </div>
           <p className="text-gray-600">Intelligent insights, predictions & recommendations powered by AI</p>
         </div>

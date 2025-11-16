@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useUserAuth } from '../../hooks/useUserAuth';
 import axiosInstance from '../../utils/axiosinstance';
 import { API_PATHS } from '../../utils/apiPaths';
+import Input from '../../components/Inputs/Input';
+import Button from '../../components/layouts/Button';
+import useFetchData from '../../hooks/useFetchData';
 
 export default function UserSettings() {
   const { user } = useUserAuth();
   const [activeTab, setActiveTab] = useState('profile');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // For form submissions
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('success');
 
@@ -23,8 +26,34 @@ export default function UserSettings() {
     confirmPassword: ''
   });
 
+  const { data: preferencesData, loading: preferencesLoading, error: preferencesError, fetchData: refetchPreferences } = useFetchData(
+    user ? API_PATHS.SETTINGS.GET_PREFERENCES : null,
+    {
+      initialData: {
+        preferences: {
+          theme: 'light',
+          language: 'en',
+          timezone: 'UTC',
+          dateFormat: 'MM/DD/YYYY',
+          emailNotifications: true,
+          pushNotifications: true,
+          weekStartsOn: 'monday'
+        },
+        notificationSettings: {
+          taskAssigned: true,
+          taskDueSoon: true,
+          taskCompleted: false,
+          mentionedInComment: true,
+          dailyDigest: true,
+          weeklyReport: false
+        }
+      },
+      skip: !user
+    }
+  );
+
   // Preferences state
-  const [preferences, setPreferences] = useState({
+  const [preferences, setPreferences] = useState(preferencesData?.preferences || {
     theme: 'light',
     language: 'en',
     timezone: 'UTC',
@@ -35,7 +64,7 @@ export default function UserSettings() {
   });
 
   // Notifications state
-  const [notifications, setNotifications] = useState({
+  const [notifications, setNotifications] = useState(preferencesData?.notificationSettings || {
     taskAssigned: true,
     taskDueSoon: true,
     taskCompleted: false,
@@ -46,21 +75,24 @@ export default function UserSettings() {
 
   // Load preferences on mount
   useEffect(() => {
-    loadPreferences();
-    setProfileData({ name: user?.name || '', email: user?.email || '' });
-  }, [user]);
-
-  const loadPreferences = async () => {
-    try {
-      const response = await axiosInstance.get(API_PATHS.SETTINGS.GET_PREFERENCES);
-      if (response.data?.data) {
-        setPreferences(response.data.data.preferences || preferences);
-        setNotifications(response.data.data.notificationSettings || notifications);
-      }
-    } catch (error) {
-      console.error('Failed to load preferences:', error);
+    if (preferencesData) {
+      setPreferences(preferencesData.preferences || preferences);
+      setNotifications(preferencesData.notificationSettings || notifications);
     }
-  };
+    setProfileData({ name: user?.name || '', email: user?.email || '' });
+  }, [user, preferencesData]);
+
+  // const loadPreferences = async () => { // Removed
+  //   try {
+  //     const response = await axiosInstance.get(API_PATHS.SETTINGS.GET_PREFERENCES);
+  //     if (response.data?.data) {
+  //       setPreferences(response.data.data.preferences || preferences);
+  //       setNotifications(response.data.data.notificationSettings || notifications);
+  //     }
+  //   } catch (error) {
+  //     console.error('Failed to load preferences:', error);
+  //   }
+  // };
 
   const showMessage = (msg, type = 'success') => {
     setMessage(msg);
@@ -118,6 +150,7 @@ export default function UserSettings() {
         notificationSettings: notifications
       });
       showMessage('Preferences updated successfully!', 'success');
+      refetchPreferences(); // Call refetchPreferences from the hook
     } catch (error) {
       showMessage(error.response?.data?.message || 'Error updating preferences', 'error');
     } finally {
@@ -186,7 +219,6 @@ export default function UserSettings() {
               <p className="text-blue-100 text-sm mt-1">Manage your account and preferences</p>
             </div>
             <div>
-              <button>hi</button>
             </div>
           </div>
 
@@ -231,11 +263,11 @@ export default function UserSettings() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Full Name
                   </label>
-                  <input
+                  <Input
                     type="text"
                     value={profileData.name}
                     onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full"
                     placeholder="Enter your full name"
                   />
                 </div>
@@ -244,23 +276,24 @@ export default function UserSettings() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Email Address
                   </label>
-                  <input
+                  <Input
                     type="email"
                     value={profileData.email}
                     onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full"
                     placeholder="Enter your email"
                   />
                 </div>
 
                 <div className="pt-4">
-                  <button
+                  <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition"
+                    variant="primary"
+                    className="w-full"
                   >
                     {loading ? 'Saving...' : 'Save Profile Changes'}
-                  </button>
+                  </Button>
                 </div>
               </form>
             )}
@@ -274,11 +307,11 @@ export default function UserSettings() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Current Password
                   </label>
-                  <input
+                  <Input
                     type="password"
                     value={passwordData.currentPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full"
                     placeholder="Enter your current password"
                   />
                 </div>
@@ -287,11 +320,11 @@ export default function UserSettings() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     New Password
                   </label>
-                  <input
+                  <Input
                     type="password"
                     value={passwordData.newPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full"
                     placeholder="Enter your new password"
                   />
                 </div>
@@ -300,23 +333,24 @@ export default function UserSettings() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Confirm Password
                   </label>
-                  <input
+                  <Input
                     type="password"
                     value={passwordData.confirmPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full"
                     placeholder="Confirm your new password"
                   />
                 </div>
 
                 <div className="pt-4">
-                  <button
+                  <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition"
+                    variant="primary"
+                    className="w-full"
                   >
                     {loading ? 'Updating...' : 'Update Password'}
-                  </button>
+                  </Button>
                 </div>
               </form>
             )}
@@ -366,13 +400,14 @@ export default function UserSettings() {
                 </div>
 
                 <div className="pt-4">
-                  <button
+                  <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition"
+                    variant="primary"
+                    className="w-full"
                   >
                     {loading ? 'Saving...' : 'Save Notification Settings'}
-                  </button>
+                  </Button>
                 </div>
               </form>
             )}
@@ -458,13 +493,14 @@ export default function UserSettings() {
                 </div>
 
                 <div className="pt-4">
-                  <button
+                  <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition"
+                    variant="primary"
+                    className="w-full"
                   >
                     {loading ? 'Saving...' : 'Save Preferences'}
-                  </button>
+                  </Button>
                 </div>
               </form>
             )}
@@ -477,25 +513,27 @@ export default function UserSettings() {
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
                   <h3 className="font-medium text-gray-900 mb-2">Export Your Data</h3>
                   <p className="text-sm text-gray-600 mb-4">Download all your data including tasks, comments, and preferences in JSON format for backup or migration.</p>
-                  <button
+                  <Button
                     onClick={handleExportData}
                     disabled={loading}
-                    className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition"
+                    variant="primary"
+                    className="w-full bg-green-600 hover:bg-green-700"
                   >
                     {loading ? 'Exporting...' : '📥 Download My Data'}
-                  </button>
+                  </Button>
                 </div>
 
                 <div className="p-4 bg-red-50 border border-red-200 rounded-md">
                   <h3 className="font-medium text-gray-900 mb-2">Delete Your Account</h3>
                   <p className="text-sm text-gray-600 mb-4">Permanently delete your account and all associated data. This action cannot be undone.</p>
-                  <button
+                  <Button
                     onClick={handleDeleteAccount}
                     disabled={loading}
-                    className="w-full bg-red-600 text-white py-2 rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition"
+                    variant="danger"
+                    className="w-full"
                   >
                     {loading ? 'Deleting...' : '🗑️ Delete My Account'}
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}
