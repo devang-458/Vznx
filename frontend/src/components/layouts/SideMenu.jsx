@@ -31,7 +31,7 @@ const SideMenu = ({ activeMenu }) => {
   }, [user]);
 
   return (
-    <div className="w-64  bg-white border-r border-gray-200/50 sticky top-0 z-20 flex flex-col overflow-hidden">
+    <div className="w-64  bg-white border-r border-gray-200/50 sticky top-0 z-20 flex flex-col">
       {/* Profile Section */}
       <div className="flex-row justify-evenly items-center mb-7 mx-4 pt-5 shrink-0 flex ">
         <div className="relative">
@@ -57,14 +57,14 @@ const SideMenu = ({ activeMenu }) => {
       </div>
 
       {/* Menu Items - Scrollable */}
-      <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden pr-2 scroll-smooth">
+      <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden pr-2 pb-14  scroll-smooth max-h-[calc(100vh-150px)]">
         {sideMenuData.map((item, index) => {
           const Icon = item.icons;
           return (
             <button
               key={item.id || index}
               onClick={() => handleClick(item.path)}
-              className={`w-full flex items-center gap-4 text-md font-semibold py-3 px-6 mb-1 transition-colors duration-200 flex-shrink-0
+              className={`w-full flex items-center gap-4 text-md font-semibold py-3 px-6 mb-1 transition-colors duration-200 shrink-0
                 ${activeMenu === item.label
                   ? 'text-primary bg-linear-to-r from-blue-50/40 to-blue-100/50 border-r-4 border-primary'
                   : 'text-gray-700 hover:bg-blue-50/40 hover:text-primary'

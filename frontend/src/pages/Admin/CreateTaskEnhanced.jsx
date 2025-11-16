@@ -8,18 +8,25 @@ import { generatePlaceholders, suggestLabels, generatePrioritySuggestion, getAut
 import { LuWand2, LuLoader } from 'lucide-react'
 import Input from '../../components/Inputs/Input'
 import Button from '../../components/layouts/Button'
+import { useLocation } from 'react-router-dom'
 
 const CreateTaskEnhanced = () => {
   const { user } = useContext(UserContext)
+  const location = useLocation()
+  const { projectId: initialProjectId, status: initialStatus } = location.state || {}
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     priority: 'Medium',
     dueDate: '',
     labels: [],
-    newLabel: ''
+    newLabel: '',
+    status: initialStatus || 'To Do', // Pre-fill status if provided
+    projectId: initialProjectId || '', // Store projectId
   })
 
+  const [projectName, setProjectName] = useState('')
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [labelSuggestions, setLabelSuggestions] = useState([])
@@ -27,6 +34,22 @@ const CreateTaskEnhanced = () => {
   const [autoSaving, setAutoSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState(null)
   const [users, setUsers] = useState([])
+
+  // Fetch project name if projectId is available
+  useEffect(() => {
+    if (formData.projectId) {
+      const fetchProjectName = async () => {
+        try {
+          const response = await axiosInstance.get(API_PATHS.PROJECTS.GET_PROJECT_BY_ID(formData.projectId))
+          setProjectName(response.data.name)
+        } catch (err) {
+          console.error('Error fetching project name:', err)
+          setProjectName('Unknown Project')
+        }
+      }
+      fetchProjectName()
+    }
+  }, [formData.projectId])
 
   // Fetch users
   useEffect(() => {
@@ -125,7 +148,9 @@ const CreateTaskEnhanced = () => {
         priority: formData.priority,
         dueDate: formData.dueDate,
         labels: formData.labels,
-        createdBy: user._id
+        createdBy: user._id,
+        project: formData.projectId, // Include projectId
+        status: formData.status,     // Include status
       }
 
       await axiosInstance.post(API_PATHS.TASKS.CREATE_TASK, payload)
@@ -139,7 +164,9 @@ const CreateTaskEnhanced = () => {
         priority: 'Medium',
         dueDate: '',
         labels: [],
-        newLabel: ''
+        newLabel: '',
+        status: initialStatus || 'To Do', // Reset status to initial or default
+        projectId: initialProjectId || '',
       })
       alert('Task created successfully!')
     } catch (error) {
@@ -153,6 +180,9 @@ const CreateTaskEnhanced = () => {
     <AdminLayout>
       <div className="max-w-4xl mx-auto p-8">
         <h1 className="text-4xl font-bold text-gray-800 mb-2">Create New Task</h1>
+        {projectName && (
+          <p className="text-gray-600 mb-4">For Project: <span className="font-semibold">{projectName}</span></p>
+        )}
         <p className="text-gray-600 mb-8">Intelligent task creation with AI-powered suggestions</p>
 
         {errors.submit && (
@@ -162,6 +192,35 @@ const CreateTaskEnhanced = () => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Project ID (hidden or read-only) */}
+          {formData.projectId && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Project</label>
+              <Input
+                type="text"
+                value={projectName || 'Loading Project...'}
+                readOnly
+                className="w-full bg-gray-100 cursor-not-allowed"
+              />
+            </div>
+          )}
+
+          {/* Status */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+            <select
+              value={formData.status}
+              onChange={handleChange('status')}
+              className="w-full bg-transparent border border-slate-300 rounded-md px-3 py-2 outline-none focus:border-primary"
+            >
+              <option value="To Do">To Do</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Review">Review</option>
+              <option value="Blocked">Blocked</option>
+              <option value="Done">Done</option>
+            </select>
+          </div>
+
           {/* Title with AI suggestions */}
           <EnhancedInput
             label="Task Title"

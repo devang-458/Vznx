@@ -31,6 +31,15 @@ export const API_PATHS = {
         STOP_TIMER: (taskId) => `/api/tasks/${taskId}/time/stop`,
         ADD_TIME_ENTRY: (taskId) => `/api/tasks/${taskId}/time/manual`
     },
+    ISSUES: {
+        GET_ISSUES_BY_PROJECT: (projectId) => `/api/projects/${projectId}/issues`,
+        UPDATE_ISSUE_STATUS: (issueId) => `/api/issues/${issueId}/status`,
+        AI_CREATE: "/api/issues/ai-create",
+        GET_ISSUE_BY_ID: (issueId) => `/api/issues/${issueId}`,
+        DELETE_ISSUE: (issueId) => `/api/issues/${issueId}`,
+        GENERATE_SUBTASKS: (issueId) => `/api/issues/${issueId}/generate-subtasks`,
+        CREATE_ISSUE: "/api/issues",
+    },
     ANALYTICS: {
         GET_INSIGHTS: "/api/analytics/insights",
         GET_TEAM_ANALYTICS: "/api/analytics/team",
@@ -58,7 +67,8 @@ export const API_PATHS = {
     },
     REPORTS: {
         EXPORT_TASKS: "/api/reports/export/tasks",
-        EXPORT_USERS: "/api/reports/export/users"
+        EXPORT_USERS: "/api/reports/export/users",
+        GET_BURNDOWN_CHART_DATA: (projectId, startDate, endDate) => `/api/reports/burndown/${projectId}/${startDate}/${endDate}`,
     },
     IMAGE: {
         UPLOAD_IMAGE: "/api/auth/upload-image"
@@ -85,5 +95,12 @@ export const API_PATHS = {
         DELETE_COMMENT: (commentId) => `/api/comments/${commentId}`,
         ADD_REACTION: (commentId) => `/api/comments/${commentId}/react`,
         REPLY_COMMENT: (commentId) => `/api/comments/${commentId}/reply`
+    },
+    PROJECTS: {
+        GET_ALL_PROJECTS: "/api/projects",
+        GET_PROJECT_BY_ID: (projectId) => `/api/projects/${projectId}`,
+        CREATE_PROJECT: "/api/projects",
+        UPDATE_PROJECT: (projectId) => `/api/projects/${projectId}`,
+        DELETE_PROJECT: (projectId) => `/api/projects/${projectId}`,
     }
 }

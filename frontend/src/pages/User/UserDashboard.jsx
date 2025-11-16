@@ -59,11 +59,13 @@ const UserDashboard = () => {
     { skip: !user }
   );
 
-  // const [dashboardData, setDashboardData] = useState(null) // Removed
+  const { data: projectsData, loading: projectsLoading, error: projectsError } = useFetchData(
+    user ? API_PATHS.PROJECTS.GET_ALL_PROJECTS : null,
+    { skip: !user, initialData: [] }
+  );
+
   const [pieChartData, setPieChartData] = useState([])
   const [barChartData, setBarChartData] = useState([])
-  // const [loading, setLoading] = useState(false) // Removed
-  // const [error, setError] = useState(null) // Removed
   const [fabOpen, setFabOpen] = useState(false)
   const [filter, setFilter] = useState({ status: 'all', mineOnly: false })
   const [modalTask, setModalTask] = useState(null)
@@ -86,37 +88,17 @@ const UserDashboard = () => {
       { name: 'Medium', value: prio.Medium || prio.medium || prio.mid || 0 },
       { name: 'High', value: prio.High || prio.high || prio.highCount || 0 }
     ]
-    console.log("👉 taskDistributionData:", taskDistributionData);
+    // console.log("👉 Prepared Pie Chart Data:", taskDistributionData); // Debug log
+    // console.log("👉 Prepared Bar Chart Data:", priorityLevelData); // Debug log
 
     setPieChartData(taskDistributionData)
     setBarChartData(priorityLevelData)
   }
 
-  // const getDashboardData = async () => { // Removed
-  //   if (!user) return
-  //   setLoading(true)
-  //   setError(null)
-
-  //   try {
-  //     const response = await axiosInstance.get(API_PATHS.TASKS.GET_USER_DASHBOARD_DATA)
-  //     const normalized = normalizeDashboardResponse(response.data)
-  //     setDashboardData(normalized)
-  //     prepareChartData(normalized.charts)
-  //   } catch (err) {
-  //     console.error('Error fetching user dashboard data', err)
-  //     setError('Failed to load dashboard data')
-  //     setDashboardData({ charts: { taskDistribution: {}, taskPriorityLevels: {} }, recentTasks: [] })
-  //     setPieChartData([])
-  //     setBarChartData([])
-  //   } finally {
-  //     setLoading(false)
-  //   }
-  // }
-
   useEffect(() => {
     if (dashboardData) {
+      // console.log('Dashboard Data:', dashboardData); // Debug log
       const normalized = normalizeDashboardResponse(dashboardData);
-      // setDashboardData(normalized); // No longer needed as dashboardData is from hook
       prepareChartData(normalized.charts);
     }
   }, [dashboardData]);
@@ -135,6 +117,9 @@ const UserDashboard = () => {
     return list
   }, [dashboardData, filter, user])
 
+      // console.log("👉 Filtered Tasks for TaskListTable:", filteredTasks); // Debug log
+      console.log("Dashboard Data:", dashboardData); // Debug log
+      console.log("Filtered Tasks for TaskListTable:", filteredTasks); // Debug log
   const onSeeMore = () => navigate('/user/tasks')
 
   const createTask = () => {
@@ -187,17 +172,10 @@ const UserDashboard = () => {
           <div>
             <h1 className="text-2xl font-semibold">Welcome back{user?.name ? `, ${user.name.split(' ')[0]}` : ''} 👋</h1>
             <p className="text-sm text-gray-600 mt-1">{moment().format('dddd, Do MMM YYYY')}</p>
-            {potentialOverdue?.length > 0 && (
-              <div className="mt-3 inline-flex items-center gap-3 bg-red-50 border border-red-100 text-red-700 px-3 py-2 rounded">
-                <FiZap />
-                <div className="text-sm">{potentialOverdue.length} task(s) may miss deadline — check Recent Tasks.</div>
-                <Button variant="ghost" size="sm" className="ml-4 text-sm underline" onClick={() => { setFilter(f => ({ ...f, status: 'all', mineOnly: false })); window.scrollTo({ top: 800, behavior: 'smooth' }); }}>View</Button>
-              </div>
-            )}
+
           </div>
 
-          <div className="flex items-center gap-2 flex-nowrap">
-
+          <div className="flex items-center gap-3">
             <div className="flex items-center gap-2  bg-white border rounded-full px-3 py-1 shadow-sm">
               <select className="text-sm outline-none" value={filter.status} onChange={(e) => setFilter(f => ({ ...f, status: e.target.value }))}>
                 <option value="all">All statuses</option>
@@ -205,18 +183,64 @@ const UserDashboard = () => {
                 <option value="InProgress">In Progress</option>
                 <option value="Completed">Completed</option>
               </select>
-              <label className="ml-2 text-sm text-gray-600 flex items-center gap-2">
-                <input type="checkbox" checked={filter.mineOnly} onChange={(e) => setFilter(f => ({ ...f, mineOnly: e.target.checked }))} />
-                <span className="text-xs p-1.5 flex flex-row w-22">My tasks only</span>
-              </label>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <button className="border-black border p-2.5 rounded-full " onClick={sendMessage}><LuMessageCircle  /></button>
-              <Button variant="primary" onClick={createTask}>+ New Task</Button>
+              {potentialOverdue.length > 0 && (
+                <div className="mt-3 flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded text-center mx-auto">
+                  <FiZap />
+                  {potentialOverdue.length} task(s) might miss deadline
+                </div>
+              )}
             </div>
           </div>
         </div>
 
+        {/* RECENT PROJECTS */}
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-900">Recent Projects</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-blue-600"
+              onClick={() => navigate('/user/projects')}
+            >
+              See All Projects
+            </Button>
+          </div>
+          {projectsLoading ? (
+            <div className="flex justify-center items-center h-24 bg-white rounded-lg shadow-md">
+              <p className="text-gray-500">Loading projects...</p>
+            </div>
+          ) : projectsError ? (
+            <div className="flex justify-center items-center h-24 bg-white rounded-lg shadow-md">
+              <p className="text-red-500">Error loading projects: {projectsError.message}</p>
+            </div>
+          ) : projectsData.length === 0 ? (
+            <div className="text-center py-6 bg-white rounded-lg shadow-md">
+              <p className="text-gray-500">No projects found.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {projectsData.slice(0, 3).map((project) => (
+                <div key={project._id} className="bg-white rounded-lg shadow-md p-4">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-1">{project.name}</h3>
+                  <p className="text-sm text-gray-600">{project.description || 'No description.'}</p>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="mt-3"
+                    onClick={() => navigate(`/user/projects/${project._id}/kanban`)}
+                  >
+                    View Kanban
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* --- INFO CARD STATS --- */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5 mt-8">
           <motion.div whileHover={{ scale: 1.03 }} className="bg-white rounded-2xl p-5 shadow-md cursor-pointer">
             <InfoCard icon={<IoStatsChart />} label="My Tasks" value={addThousandsSeparator(totalAll || 0)} color="bg-blue-500" />
@@ -235,37 +259,64 @@ const UserDashboard = () => {
           </motion.div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-          <div className="bg-white rounded-2xl p-6 shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <h5 className="font-medium">Task Distribution</h5>
-              <div className="text-xs text-gray-500">Hover slices for details</div>
-            </div>
-            <CustomPieChart data={pieChartData} colors={COLORS} />
-          </div>
-
-          <div className="bg-white rounded-2xl p-6 shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <h5 className="font-medium">Task Priority Levels</h5>
-              <div className="text-xs text-gray-500">Color-coded</div>
-            </div>
-            <CustomBarChart data={barChartData} />
-          </div>
-
-          <div className="md:col-span-2 bg-white rounded-2xl p-6 shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <h5 className="font-medium">Recent Tasks</h5>
-              <div className="flex items-center gap-3">
-                <div className="text-sm text-gray-600">Completion: <strong>{completionRate}%</strong></div>
-                <Button variant="ghost" size="sm" className="text-gray-600" onClick={() => refetchDashboardData()}>Refresh</Button>
-                <Button variant="ghost" size="sm" className="flex items-center gap-2 text-blue-600" onClick={onSeeMore}>See All <LuSquareArrowRight /></Button>
+        {/* --- 🚀 NEW CHARTS SECTION 🚀 --- */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+          <div className="bg-white p-4 md:p-6 rounded-2xl shadow-md">
+            <h3 className="text-lg font-semibold mb-4 text-gray-900">Task Distribution</h3>
+            {/* Check if data is ready before rendering the chart */}
+            {pieChartData.length > 0 && pieChartData.some(item => item.value > 0) ? (
+              <div className="h-64 md:h-80"> {/* Set a height for the chart container */}
+                <CustomPieChart data={pieChartData} colors={COLORS} />
               </div>
-            </div>
+            ) : (
+              <div className="h-64 md:h-80 flex items-center justify-center text-gray-500">
+                {loading ? 'Loading chart...' : 'No task data to display'}
+              </div>
+            )}
+          </div>
 
-            <TaskListTable tableData={filteredTasks} onRowClick={(task) => setModalTask(task)} />
+          <div className="bg-white p-4 md:p-6 rounded-2xl shadow-md">
+            <h3 className="text-lg font-semibold mb-4 text-gray-900">Priority Levels</h3>
+            {barChartData.length > 0 && barChartData.some(item => item.value > 0) ? (
+              <div className="h-64 md:h-80"> {/* Set a height for the chart container */}
+                <CustomBarChart data={barChartData} colors={COLORS} />
+              </div>
+            ) : (
+              <div className="h-64 md:h-80 flex items-center justify-center text-gray-500">
+                {loading ? 'Loading chart...' : 'No priority data to display'}
+              </div>
+            )}
           </div>
         </div>
+        {/* --- 🚀 END OF NEW CHARTS SECTION 🚀 --- */}
 
+
+        {/* --- 🚀 NEW RECENT TASKS SECTION 🚀 --- */}
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-900">Recent Tasks</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-blue-600"
+              onClick={onSeeMore}
+            >
+              See All Tasks
+            </Button>
+          </div>
+          <div className="bg-white rounded-2xl shadow-md overflow-hidden">
+            <TaskListTable
+              tasks={filteredTasks}
+              isLoading={loading}
+              error={error}
+              onRowClick={(task) => setModalTask(task)} // Open modal on row click
+            />
+          </div>
+        </div>
+        {/* --- 🚀 END OF NEW RECENT TASKS SECTION 🚀 --- */}
+
+
+        {/* --- FAB --- */}
         <div className="fixed right-6 bottom-6 z-50">
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 300 }}>
             <div className="relative">
@@ -302,6 +353,10 @@ const UserDashboard = () => {
         <TaskModal task={modalTask} onClose={() => setModalTask(null)} />
 
         {error && <div className="mt-4 text-sm text-red-600">{error}</div>}
+
+        {/* Add some padding to the bottom so FAB doesn't overlap content */}
+        <div className="h-24"></div> 
+
       </div>
     </DashboardLayout>
   )

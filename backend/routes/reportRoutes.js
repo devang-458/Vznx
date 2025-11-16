@@ -1,11 +1,9 @@
-const express = require("express");
-const { protect, adminOnly } = require("../middleware/authMiddleware");
-const { route } = require("./authRoutes");
-const { exportUsersReport, exportTasksReport } = require("../controller/reportController");
-
+const express = require('express');
 const router = express.Router();
+const { protect } = require('../middleware/authMiddleware');
+const { getBurndownChartData } = require('../controller/reportController');
 
-router.get("/export/tasks", protect, adminOnly, exportTasksReport);
-router.get("/export/users", protect, adminOnly, exportUsersReport);
+// Get burndown chart data for a sprint
+router.get('/burndown/:projectId/:startDate/:endDate', protect, getBurndownChartData);
 
 module.exports = router;

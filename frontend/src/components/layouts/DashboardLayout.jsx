@@ -15,7 +15,7 @@ const DashboardLayout = ({activeMenu, children}) => {
                         <SideMenu activeMenu={activeMenu} />
                     </div>
 
-                    <div className='grow h-full overflow-y-auto pb-16'>
+                    <div className={`grow h-full overflow-y-auto ${activeMenu !== "Messages" ? "pb-16" : ""}`}>
                         {children}
                     </div>
                 </div>

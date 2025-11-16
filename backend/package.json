@@ -11,6 +11,7 @@
     "dev": "nodemon server.js"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
@@ -18,9 +19,11 @@
     "express": "^5.1.0",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
+    "moment": "^2.30.1",
     "mongoose": "^8.19.3",
     "multer": "^2.0.2",
     "nodemon": "^3.1.11",
+    "react-beautiful-dnd": "^13.1.1",
     "react-toastify": "^11.0.5",
     "socket.io": "^4.7.5"
   }

@@ -16,6 +16,9 @@ const settingsRoutes = require('./routes/settingsRoutes.js');
 const commentRoutes = require('./routes/commentRoutes.js');
 const aiRoutes = require('./routes/aiRoutes.js');
 const messageRoutes = require('./routes/messageRoutes.js');
+const projectRoutes = require('./routes/projectRoutes.js');
+const issueRoutes = require('./routes/issueRoutes.js');
+const insightRoutes = require('./routes/insightRoutes.js');
 const { initSocket } = require('./socket.js');
 const http = require('http');
 const errorHandler = require('./middleware/errorHandler.js'); // Import the new error handler
@@ -60,6 +63,9 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api', commentRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/projects', projectRoutes);
+app.use('/api', issueRoutes);
+app.use('/api/insights', insightRoutes);
 
 app.use("/upload", express.static(path.join(__dirname, "uploads")));
 

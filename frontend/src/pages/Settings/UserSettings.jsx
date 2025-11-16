@@ -256,7 +256,7 @@ export default function UserSettings() {
           <div className="p-6">
             {/* Profile Tab */}
             {activeTab === 'profile' && (
-              <form onSubmit={handleUpdateProfile} className="space-y-4">
+              <form onSubmit={handleUpdateProfile} className="space-y-4 mb-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Profile Settings</h2>
 
                 <div>
@@ -300,7 +300,7 @@ export default function UserSettings() {
 
             {/* Security Tab */}
             {activeTab === 'security' && (
-              <form onSubmit={handleUpdatePassword} className="space-y-4">
+              <form onSubmit={handleUpdatePassword} className="space-y-4 mb-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Change Password</h2>
 
                 <div>
@@ -357,7 +357,7 @@ export default function UserSettings() {
 
             {/* Notifications Tab */}
             {activeTab === 'notifications' && (
-              <form onSubmit={handleUpdatePreferences} className="space-y-4">
+              <form onSubmit={handleUpdatePreferences} className="space-y-4 mb-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Notification Settings</h2>
 
                 <div className="space-y-3 pb-4 border-b border-gray-200">
@@ -382,7 +382,7 @@ export default function UserSettings() {
                   </label>
                 </div>
 
-                <div className="space-y-3">
+                <div className="border-t border-gray-200 pt-4 mt-4">
                   <p className="text-sm font-medium text-gray-700">Notification Types</p>
                   {Object.entries(notifications).map(([key, value]) => (
                     <label key={key} className="flex items-center cursor-pointer">
@@ -414,15 +414,15 @@ export default function UserSettings() {
 
             {/* Preferences Tab */}
             {activeTab === 'preferences' && (
-              <form onSubmit={handleUpdatePreferences} className="space-y-4">
+              <form onSubmit={handleUpdatePreferences} className="space-y-4 mb-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">App Preferences</h2>
 
-                <div>
+                <div className="border-b border-gray-200 pb-4 mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Theme</label>
                   <select
                     value={preferences.theme}
                     onChange={(e) => setPreferences({ ...preferences, theme: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="input-field"
                   >
                     <option value="light">Light</option>
                     <option value="dark">Dark</option>
@@ -430,12 +430,12 @@ export default function UserSettings() {
                   </select>
                 </div>
 
-                <div>
+                <div className="border-b border-gray-200 pb-4 mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Language</label>
                   <select
                     value={preferences.language}
                     onChange={(e) => setPreferences({ ...preferences, language: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="input-field"
                   >
                     <option value="en">English</option>
                     <option value="es">Español</option>
@@ -445,12 +445,12 @@ export default function UserSettings() {
                   </select>
                 </div>
 
-                <div>
+                <div className="border-b border-gray-200 pb-4 mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Timezone</label>
                   <select
                     value={preferences.timezone}
                     onChange={(e) => setPreferences({ ...preferences, timezone: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="input-field"
                   >
                     <option value="UTC">UTC</option>
                     <option value="America/New_York">Eastern (EST)</option>
@@ -467,12 +467,12 @@ export default function UserSettings() {
                   </select>
                 </div>
 
-                <div>
+                <div className="border-b border-gray-200 pb-4 mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Date Format</label>
                   <select
                     value={preferences.dateFormat}
                     onChange={(e) => setPreferences({ ...preferences, dateFormat: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="input-field"
                   >
                     <option value="MM/DD/YYYY">MM/DD/YYYY</option>
                     <option value="DD/MM/YYYY">DD/MM/YYYY</option>
@@ -485,7 +485,7 @@ export default function UserSettings() {
                   <select
                     value={preferences.weekStartsOn}
                     onChange={(e) => setPreferences({ ...preferences, weekStartsOn: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="input-field"
                   >
                     <option value="sunday">Sunday</option>
                     <option value="monday">Monday</option>
@@ -507,7 +507,7 @@ export default function UserSettings() {
 
             {/* Privacy & Data Tab */}
             {activeTab === 'privacy' && (
-              <div className="space-y-4">
+              <div className="space-y-4 mb-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Privacy & Data</h2>
 
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">

@@ -113,8 +113,8 @@ const Messages = () => {
     return (
         <DashboardLayout activeMenu="Messages" className="h-screen overflow-hidden">
 
-            <div className="flex flex-col h-full">
-                <div className="flex flex-1 overflow-hidden">
+            <div className="flex flex-col h-full bg-gray-50">
+                <div className="flex flex-1 overflow-hidden h-full">
                     <ConversationList
                         conversations={state.conversations}
                         selectedConversation={state.selectedConversation}

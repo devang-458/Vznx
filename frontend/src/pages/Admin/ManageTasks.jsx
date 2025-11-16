@@ -36,9 +36,11 @@ const ManageTasks = () => {
 
   // const [loading, setLoading] = useState(true); // Removed
 
-  const [statusFilter, setStatusFilter] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
 
-  const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const [showMyTasksOnly, setShowMyTasksOnly] = useState(false);
 
 
 
@@ -104,6 +106,11 @@ const ManageTasks = () => {
 
   };
 
+  const handleMyTasksOnlyToggle = () => {
+    setShowMyTasksOnly(prev => !prev);
+    console.log("My Tasks Only toggled:", !showMyTasksOnly);
+  };
+
   // Filter tasks based on search term and status
   const filteredTasks = tasks.filter(task => {
     const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -155,6 +162,7 @@ const ManageTasks = () => {
                   </option>
                 ))}
               </select>
+              fizap
             </div>
           </div>
 

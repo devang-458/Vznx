@@ -48,6 +48,16 @@ const Dashboard = () => {
     { skip: !user }
   );
 
+  const { data: insightsData, loading: insightsLoading, error: insightsError } = useFetchData(
+    user ? API_PATHS.ANALYTICS.GET_INSIGHTS : null,
+    { skip: !user, initialData: [] }
+  );
+
+  const { data: projectsData, loading: projectsLoading, error: projectsError } = useFetchData(
+    user ? API_PATHS.PROJECTS.GET_ALL_PROJECTS : null,
+    { skip: !user, initialData: [] }
+  );
+
   // const [dashboardData, setDashboardData] = useState(null); // Removed
   const [pieChartData, setPieChartData] = useState([]);
   const [barChartData, setBarChartData] = useState([]);
@@ -214,12 +224,7 @@ const Dashboard = () => {
               {moment().format("dddd, Do MMM YYYY")}
             </p>
 
-            {potentialOverdue.length > 0 && (
-              <div className="mt-3 flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded">
-                <FiZap />
-                {potentialOverdue.length} task(s) might miss deadline
-              </div>
-            )}
+
           </div>
 
           {/* Filter + New Task */}
@@ -232,14 +237,14 @@ const Dashboard = () => {
                 <option value="InProgress">In Progress</option>
                 <option value="Completed">Completed</option>
               </select>
-              <label className="ml-2 text-sm text-gray-600 flex items-center gap-2">
-                <input type="checkbox" checked={filter.mineOnly} onChange={(e) => setFilter(f => ({ ...f, mineOnly: e.target.checked }))} />
-                <span className="text-xs p-1.5 flex flex-row w-22">My tasks only</span>
-              </label>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <button className="border-black border p-2.5 rounded-full " onClick={sendMassage}><LuMessageCircle /></button>
-              <Button variant="primary" onClick={createTask}>+ New Task</Button>
+              {potentialOverdue.length > 0 && (
+                <div className="mt-3 flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded text-center mx-auto">
+                  <FiZap />
+                  {potentialOverdue.length} task(s) might miss deadline
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -252,8 +257,83 @@ const Dashboard = () => {
           <InfoCard icon={<IoCheckmarkCircle />} label="Completed" value={totals.Completed || 0} color="bg-green-400" />
         </div>
 
+        {/* PREDICTIVE INSIGHTS */}
+        <div className="mt-8">
+          {insightsLoading ? (
+            <div className="flex justify-center items-center h-24 bg-white rounded-lg shadow-md">
+              <p className="text-gray-500">Loading insights...</p>
+            </div>
+          ) : insightsError ? (
+            <div className="flex justify-center items-center h-24 bg-white rounded-lg shadow-md">
+              <p className="text-red-500">Error loading insights: {insightsError.message}</p>
+            </div>
+          ) : insightsData.length === 0 ? (
+            <div className="text-center py-6 bg-white rounded-lg shadow-md">
+              <p className="text-gray-500">No predictive insights available yet.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Array.isArray(insightsData) && insightsData.map((insight) => (
+                <div key={insight._id} className="bg-white rounded-lg shadow-md p-4 border-l-4 border-blue-500">
+                  <p className="text-sm font-medium text-gray-600 mb-1">{insight.type} for {insight.projectId?.name}</p>
+                  <p className="text-gray-800">{insight.insightText}</p>
+                  <p className="text-xs text-gray-500 mt-2">Severity: {insight.severity} | Generated: {new Date(insight.generatedAt).toLocaleDateString()}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* RECENT PROJECTS */}
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-900">Recent Projects</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-blue-600"
+              onClick={() => navigate('/admin/projects')}
+            >
+              See All Projects
+            </Button>
+          </div>
+          {projectsLoading ? (
+            <div className="flex justify-center items-center h-24 bg-white rounded-lg shadow-md">
+              <p className="text-gray-500">Loading projects...</p>
+            </div>
+          ) : projectsError ? (
+            <div className="flex justify-center items-center h-24 bg-white rounded-lg shadow-md">
+              <p className="text-red-500">Error loading projects: {projectsError.message}</p>
+            </div>
+          ) : projectsData.length === 0 ? (
+            <div className="text-center py-6 bg-white rounded-lg shadow-md">
+              <p className="text-gray-500">No projects found.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+              {projectsData.slice(0, 3).map((project) => (
+                <div key={project._id} className="bg-white rounded-lg shadow-md p-4">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-1">{project.name}</h3>
+                  <p className="text-sm text-gray-600">{project.description || 'No description.'}</p>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="mt-3"
+                    onClick={() => navigate(`/admin/projects/${project._id}/kanban`)}
+                  >
+                    View Kanban
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* CHARTS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+        <h2 className="text-xl font-semibold text-gray-900 mt-6">Predictive Insights</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+
           <div className="bg-white rounded-2xl p-6 shadow-md">
             <h5 className="font-medium">Task Distribution</h5>
             <CustomPieChart data={pieChartData} colors={COLORS} />

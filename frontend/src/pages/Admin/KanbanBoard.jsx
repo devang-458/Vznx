@@ -1,277 +1,246 @@
-import React, { useState, useEffect } from 'react';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { IoAdd, IoEye } from 'react-icons/io5';
-import axiosInstance from '../../utils/axiosinstance';
-import moment from 'moment';
-import Button from '../../components/layouts/Button';
+import React, { useContext, useState, useEffect } from 'react';
+import DashboardLayout from '../../components/layouts/DashboardLayout';
+import { useUserAuth } from '../../hooks/useUserAuth';
+import { UserContext } from '../../context/userContext';
 import useFetchData from '../../hooks/useFetchData';
+import { API_PATHS } from '../../utils/apiPaths';
+import { useParams, useNavigate } from 'react-router-dom';
+import axiosInstance from '../../utils/axiosinstance';
+// Import necessary components from react-beautiful-dnd
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
-export default function KanbanBoard() {
-  const { data: tasksData, loading, error, fetchData: refetchTasks } = useFetchData(
-    '/api/tasks',
-    { initialData: { data: [] } }
+// Placeholder for IssueCard component
+const IssueCard = ({ issue, dragHandleProps }) => {
+  return (
+    <div className="bg-white rounded-lg shadow-sm p-3 mb-3 border border-gray-200 flex items-center">
+      <div {...dragHandleProps} className="cursor-grab mr-2 text-gray-400 hover:text-gray-600">
+        &#x22EE; {/* Unicode for three vertical dots */}
+      </div>
+      <div>
+        <h4 className="font-semibold text-sm text-gray-800">{issue.title}</h4>
+        <p className="text-xs text-gray-600 mt-1">
+          Assignee: {issue.assignee?.name || 'Unassigned'}
+        </p>
+        <p className="text-xs text-gray-500">Priority: {issue.priority}</p>
+        {/* Add more issue details as needed */}
+      </div>
+    </div>
   );
+};
 
-  const [tasks, setTasks] = useState([]); // Keep local state for optimistic updates
-  const [selectedTask, setSelectedTask] = useState(null);
+const KanbanBoard = () => {
+  useUserAuth();
+  const { user } = useContext(UserContext);
+  const { projectId } = useParams(); // Get project ID from URL
+  const navigate = useNavigate();
+  const [projectName, setProjectName] = useState('Loading Project...');
 
-  const STATUS_COLUMNS = ['Pending', 'In Progress', 'Review', 'Completed'];
-
-  useEffect(() => {
-    if (tasksData?.data) {
-      setTasks(tasksData.data);
-    }
-  }, [tasksData]);
-
-  // const loadTasks = async () => { // Removed
-  //   try {
-  //     setLoading(true);
-  //     const response = await axiosInstance.get('/api/tasks');
-  //     setTasks(response.data.data || []);
-  //   } catch (error) {
-  //     console.error('Error loading tasks:', error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  const getTasksByStatus = (status) => {
-    return tasks.filter(t => t.status === status);
+  const handleAddTask = (status) => {
+    navigate('/admin/create-task-enhanced', { state: { projectId, status } });
   };
 
-  const handleDragEnd = async (result) => {
-    const { source, destination, draggableId } = result;
+  // Fetch project details to get the project name
+  const { data: projectData, loading: projectLoading, error: projectError } = useFetchData(
+    user && projectId ? API_PATHS.PROJECTS.GET_PROJECT_BY_ID(projectId) : null,
+    { initialData: null, skip: !user || !projectId }
+  );
 
-    if (!destination) return;
+  useEffect(() => {
+    if (projectData) {
+      setProjectName(projectData.name);
+    }
+  }, [projectData]);
 
+
+  // Ensure statuses are stable and don't re-organize based on fetch
+  const [statuses] = useState(['To Do', 'In Progress', 'Review', 'Blocked', 'Done']);
+  const [issuesByStatus, setIssuesByStatus] = useState(
+    statuses.reduce((acc, status) => ({ ...acc, [status]: [] }), {})
+  );
+  // Fetch issues for the project
+  const {
+    data: issuesData,
+    loading,
+    error,
+    fetchData: refetchIssues,
+  } = useFetchData(
+    user && projectId ? API_PATHS.ISSUES.GET_ISSUES_BY_PROJECT(projectId) : null,
+    { initialData: [], skip: !user || !projectId }
+  );
+
+  useEffect(() => {
+    console.log("ji",)
+    if (issuesData) {
+      // Organize issues by status
+      const organized = statuses.reduce((acc, status) => {
+        // Initialize each status with an empty array
+        acc[status] = issuesData.filter((issue) => issue.status === status);
+        return acc;
+      }, {});
+      setIssuesByStatus(organized);
+    }
+  }, [issuesData, statuses]);
+
+  // Function to handle status update (will be called by drag and drop)
+  const updateIssueStatus = async (issueId, newStatus) => {
+    try {
+      await axiosInstance.put(API_PATHS.ISSUES.UPDATE_ISSUE_STATUS(issueId), {
+        status: newStatus,
+      });
+      refetchIssues(); // Refetch issues to update the board
+    } catch (err) {
+      console.error('Failed to update issue status:', err);
+      // Optionally show a toast notification
+      // We should probably refetch here too to revert the optimistic change on failure
+      refetchIssues();
+    }
+  };
+
+  // Handle the logic after a drag ends
+  const onDragEnd = (result) => {
+    // console.log('Drag result:', result); // Temporarily added for debugging
+    const { destination, source, draggableId } = result;
+
+    // 1. Check if dropped outside a valid area
+    if (!destination) {
+      return;
+    }
+
+    // 2. Check if dropped in the same place
     if (
-      source.droppableId === destination.droppableId &&
-      source.index === destination.index
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
     ) {
       return;
     }
 
-    const newStatus = destination.droppableId;
-    const task = tasks.find(t => t._id === draggableId);
+    // 3. Handle moving to a different column (changing status)
+    if (source.droppableId !== destination.droppableId) {
+      // Optimistically update the UI for a smooth experience
+      setIssuesByStatus((prev) => {
+        const sourceColumn = Array.from(prev[source.droppableId]);
+        const destColumn = Array.from(prev[destination.droppableId]);
 
-    if (!task) return;
+        // Find and remove the issue from the source column
+        const [movedIssue] = sourceColumn.splice(source.index, 1);
 
-    // Optimistic update
-    setTasks(
-      tasks.map(t =>
-        t._id === draggableId ? { ...t, status: newStatus } : t
-      )
-    );
+        // Add the issue to the destination column
+        destColumn.splice(destination.index, 0, movedIssue);
 
-    // Update backend
-    try {
-      await axiosInstance.put(`/api/tasks/${draggableId}/status`, {
-        status: newStatus
+        return {
+          ...prev,
+          [source.droppableId]: sourceColumn,
+          [destination.droppableId]: destColumn,
+        };
       });
-    } catch (error) {
-      console.error('Error updating task status:', error);
-      // Revert on error
-      refetchTasks(); // Call refetchTasks from the hook
+
+      // Call the API to persist the change
+      updateIssueStatus(draggableId, destination.droppableId);
+    }
+    // 4. Handle re-ordering within the same column
+    else {
+      const columnId = source.droppableId;
+      const column = issuesByStatus[columnId];
+      const newColumn = Array.from(column);
+
+      // Remove the item
+      const [movedItem] = newColumn.splice(source.index, 1);
+      // Insert it at the new position
+      newColumn.splice(destination.index, 0, movedItem);
+
+      // Update the state locally for a responsive UI
+      setIssuesByStatus((prev) => ({
+        ...prev,
+        [columnId]: newColumn,
+      }));
+      // Note: This re-ordering is not persisted to the backend
+      // as there's no API call for it in the original code.
     }
   };
 
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'Critical':
-        return 'bg-red-100 text-red-800';
-      case 'High':
-        return 'bg-orange-100 text-orange-800';
-      case 'Medium':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'Low':
-        return 'bg-green-100 text-green-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'Pending':
-        return '📋';
-      case 'In Progress':
-        return '⚙️';
-      case 'Review':
-        return '👀';
-      case 'Completed':
-        return '✅';
-      default:
-        return '📌';
-    }
-  };
-
-  if (loading) {
+  if ((loading && !issuesData.length) || projectLoading) { // Show loading only on initial load
     return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-gray-500">Loading kanban board...</p>
-      </div>
+      <DashboardLayout activeMenu="Kanban Board">
+        <div className="flex justify-center items-center h-64">
+          <p className="text-gray-500">Loading Kanban board...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error || projectError) {
+    return (
+      <DashboardLayout activeMenu="Kanban Board">
+        <div className="flex justify-center items-center h-64">
+          <p className="text-red-500">Error: {error?.message || projectError?.message}</p>
+        </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Kanban Board</h1>
-          <p className="text-gray-600 mt-1">Drag and drop tasks to update their status</p>
-        </div>
+    <DashboardLayout activeMenu="Kanban Board">
+      <div className="p-4 md:p-6">
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">
+          Kanban Board for Project: {projectName}
+        </h1>
 
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <div className="flex gap-4 overflow-x-auto pb-4">
-            {STATUS_COLUMNS.map(status => (
-              <div
-                key={status}
-                className="shrink-0 w-80 bg-gray-200 rounded-lg p-4"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">{getStatusIcon(status)}</span>
-                    <h2 className="font-bold text-gray-800">{status}</h2>
-                  </div>
-                  <span className="bg-gray-400 text-white text-xs px-2 py-1 rounded-full font-medium">
-                    {getTasksByStatus(status).length}
-                  </span>
-                </div>
-
-                <Droppable droppableId={status}>
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                      className={`space-y-3 min-h-[500px] transition-colors ${
-                        snapshot.isDraggingOver ? 'bg-gray-300 bg-opacity-50' : ''
-                      } rounded p-2`}
-                    >
-                      {getTasksByStatus(status).map((task, index) => (
+        {/* Wrap the entire board in DragDropContext */}
+        <DragDropContext onDragEnd={onDragEnd}>
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {statuses.map((status) => (
+              // Each column is a Droppable area
+              <Droppable key={status} droppableId={status}>
+                {(provided, snapshot) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className={`bg-gray-100 rounded-lg p-4 shadow-md transition-colors ${snapshot.isDraggingOver ? 'bg-blue-100' : ''
+                      }`}
+                  >
+                    <h2 className="text-lg font-semibold text-gray-800 mb-4 capitalize flex justify-between items-center">
+                      {status}
+                      <button
+                        className="text-gray-500 hover:text-blue-600 focus:outline-none"
+                        // onClick={() => handleAddTask(status)} // To be implemented
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    </h2>
+                    <div className="min-h-[200px]"> {/* Ensure droppable area has height */}
+                      {issuesByStatus[status]?.map((issue, index) => (
+                        // Each card is Draggable
                         <Draggable
-                          key={task._id}
-                          draggableId={task._id}
+                          key={String(issue._id)}
+                          draggableId={String(issue._id)}
                           index={index}
                         >
                           {(provided, snapshot) => (
                             <div
                               ref={provided.innerRef}
                               {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              className={`bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition cursor-move ${
-                                snapshot.isDragging ? 'shadow-lg bg-blue-50' : ''
-                              }`}
-                              onClick={() => setSelectedTask(task)}
+                              className={`transition-shadow ${snapshot.isDragging ? 'shadow-xl' : 'shadow-sm'
+                                }`}
                             >
-                              <div className="flex items-start justify-between mb-2">
-                                <h3 className="font-medium text-sm text-gray-900 flex-1 pr-2">
-                                  {task.title}
-                                </h3>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-blue-600 hover:text-blue-800 text-lg"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedTask(task);
-                                  }}
-                                >
-                                  <IoEye />
-                                </Button>
-                              </div>
-
-                              {task.description && (
-                                <p className="text-xs text-gray-600 mb-2 line-clamp-2">
-                                  {task.description}
-                                </p>
-                              )}
-
-                              <div className="flex items-center justify-between gap-2 flex-wrap">
-                                <span
-                                  className={`text-xs px-2 py-1 rounded font-medium ${getPriorityColor(
-                                    task.priority
-                                  )}`}
-                                >
-                                  {task.priority}
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                  {moment(task.dueDate).format('MMM DD')}
-                                </span>
-                              </div>
-
-                              {task.assignedTo && task.assignedTo.length > 0 && (
-                                <div className="flex -space-x-2 mt-3">
-                                  {task.assignedTo.slice(0, 3).map(user => (
-                                    <img
-                                      key={user._id}
-                                      src={user.profileImageUrl || 'https://via.placeholder.com/32'}
-                                      alt={user.name}
-                                      className="w-6 h-6 rounded-full border-2 border-white object-cover"
-                                      title={user.name}
-                                    />
-                                  ))}
-                                  {task.assignedTo.length > 3 && (
-                                    <div className="w-6 h-6 rounded-full border-2 border-white bg-gray-300 flex items-center justify-center text-xs font-bold">
-                                      +{task.assignedTo.length - 3}
-                                    </div>
-                                  )}
-                                </div>
-                              )}
+                              <IssueCard issue={issue} dragHandleProps={provided.dragHandleProps} />
                             </div>
                           )}
                         </Draggable>
                       ))}
+                      {/* Placeholder adds space when dragging */}
                       {provided.placeholder}
                     </div>
-                  )}
-                </Droppable>
-
-                <button className="w-full mt-3 py-2 text-gray-600 hover:text-gray-800 border-2 border-dashed border-gray-300 rounded-lg transition font-medium text-sm flex items-center justify-center gap-2">
-                  <IoAdd /> Add Task
-                </button>
-              </div>
+                  </div>
+                )}
+              </Droppable>
             ))}
           </div>
         </DragDropContext>
       </div>
-
-      {/* Task Detail Modal */}
-      {selectedTask && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold mb-4">{selectedTask.title}</h2>
-            <p className="text-gray-600 mb-4">{selectedTask.description}</p>
-
-            <div className="space-y-2 mb-4">
-              <p>
-                <strong>Priority:</strong>{' '}
-                <span className={`px-2 py-1 rounded text-sm font-medium ${getPriorityColor(selectedTask.priority)}`}>
-                  {selectedTask.priority}
-                </span>
-              </p>
-              <p>
-                <strong>Status:</strong> {selectedTask.status}
-              </p>
-              <p>
-                <strong>Due Date:</strong> {moment(selectedTask.dueDate).format('MMMM DD, YYYY')}
-              </p>
-              {selectedTask.assignedTo && selectedTask.assignedTo.length > 0 && (
-                <p>
-                  <strong>Assigned To:</strong> {selectedTask.assignedTo.map(u => u.name).join(', ')}
-                </p>
-              )}
-            </div>
-
-            <Button
-              onClick={() => setSelectedTask(null)}
-              variant="primary"
-              className="w-full"
-            >
-              Close
-            </Button>
-          </div>
-        </div>
-      )}
-    </div>
+    </DashboardLayout>
   );
-}
+};
+
+export default KanbanBoard;

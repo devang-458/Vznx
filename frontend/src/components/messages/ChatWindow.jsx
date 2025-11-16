@@ -21,12 +21,15 @@ const ChatWindow = ({
         const selected = conversations.find(c => c._id === selectedConversation);
         if (selected) {
             setUsername(selected.user?.name);
+            console.log("ChatWindow useEffect: selected conversation", selected);
+            console.log("ChatWindow useEffect: userName", selected.user?.name);
+        } else {
+            setUsername(""); // Clear username if no conversation is selected
+            console.log("ChatWindow useEffect: No conversation selected or found.");
         }
     }, [selectedConversation, conversations]);
 
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages]);
+
 
     const handleFileSelect = (e) => {
         const file = e.target.files[0];
@@ -55,14 +58,14 @@ const ChatWindow = ({
                         <span className="absolute bottom-0 right-4 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold text-gray-800">{userName}</h2>
+                        <h2 className="text-xl font-bold text-gray-800 truncate">{userName}</h2>
                         <p className="text-sm text-gray-500">Online</p>
                     </div>
                 </div>
             </div>
 
             {/* Messages */}
-            <div className="flex-grow overflow-y-auto p-6 space-y-4">
+            <div className="h-[66%] overflow-y-auto  p-6 space-y-4">
                 {messages.map((msg) => (
                     <div
                         key={msg._id}
@@ -84,7 +87,7 @@ const ChatWindow = ({
                         </div>
                     </div>
                 ))}
-                <div ref={messagesEndRef} />
+                <div ref={messagesEndRef} className="h-0" />
             </div>
 
             {/* Input */}

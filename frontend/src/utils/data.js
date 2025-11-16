@@ -6,7 +6,11 @@ import {
     LuLogOut,
     LuTrendingUp,
     LuZap,
-    LuSettings
+    LuSettings,
+    LuFile,
+    LuProjector,
+    LuFileArchive,
+    LuFileBadge
 } from "react-icons/lu"
 import { GiSmart } from "react-icons/gi"
 
@@ -19,48 +23,60 @@ export const SIDE_MENU_DATA = [
     },
     {
         id: "02",
+        label: "Manage Project",
+        icons: LuFileBadge,
+        path: '/admin/projects'
+    },
+    {
+        id: "03",
         label: "Manage Tasks",
         icons: LuClipboardCheck,
         path: '/admin/tasks'
     },
     {
-        id: "03",
+        id: "04",
         label: "Create Task",
         icons: LuSquarePlus,
         path: '/admin/create-task'
     },
     {
-        id: "04",
+        id: "05",
+        label: "Create Project",
+        icons: LuFile,
+        path: '/admin/create-project'
+    },
+    {
+        id: "06",
         label: "Task Insights",
         icons: LuTrendingUp,
         path: '/admin/insights'
     },
     {
-        id: "05",
+        id: "07",
         label: "Bulk Operations",
         icons: LuZap,
         path: '/admin/bulk-operations'
     },
     {
-        id: "06",
+        id: "08",
         label: "Team Members",
         icons: LuUsers,
         path: '/admin/users'
     },
     {
-        id: "07",
+        id: "09",
         label: "Ai-Dashboard",
         icons: GiSmart,
         path: '/admin/ai-dashboard'
     },
     {
-        id: "08",
+        id: "10",
         label: "Setting",
         icons: LuSettings,
         path: '/admin/setting'
     },
     {
-        id: "09",
+        id: "11",
         label: "Logout",
         icons: LuLogOut,
         path: 'logout'
@@ -82,22 +98,23 @@ export const SIDE_MENU_USER_DATA = [
     },
     {
         id: "03",
+        label: "Manage Project",
+        icons: LuFileBadge,
+        path: '/user/projects'
+    },
+    {
+        id: "04",
         label: "Create Task",
         icons: LuSquarePlus,
         path: '/user/create-task'
-    }, 
+    },
     {
-        id: "04",
+        id: "05",
         label: "Team Members",
         icons: LuUsers,
         path: '/user/users'
     },
-    // {
-    //     id: "05",
-    //     label: "Ai-Dashboard",
-    //     icons: GiSmart,
-    //     path: '/user/ai-dashboard'
-    // },
+
     {
         id: "06",
         label: "Setting",

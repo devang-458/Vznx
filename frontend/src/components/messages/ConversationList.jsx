@@ -8,7 +8,7 @@ const ConversationList = ({ conversations, user, selectedConversation, onSelectC
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     return (
-        <div className="w-1/4  border-r border-gray-200 flex flex-col ">
+        <div className="w-1/3 border-r border-gray-200 flex flex-col ">
             <div className="p-4 border-b border-gray-200">
                 <div className="flex justify-between items-center">
                     <h2 className="text-2xl font-bold text-gray-800">Messages</h2>
