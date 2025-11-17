@@ -77,6 +77,13 @@ app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
 
+app.post('/hi', (res, req) => {
+res.json(200,  {
+  message: "Hi user, Im not dead."
+})
+});
+
+
 // Start Server
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
