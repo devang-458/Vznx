@@ -156,15 +156,38 @@ const updateTaskStatus = async (req, res) => {
         return res.status(403).json({ message: "Not authorized" })
     }
 
-    task.status = req.body.status || task.status;
+    const oldStatus = task.status;
+    const newStatus = req.body.status;
+    console.log(`Attempting to update task ${req.params.id} status from ${oldStatus} to ${newStatus}`);
+
+    // Explicitly validate the new status
+    const allowedStatuses = Task.schema.path('status').enumValues;
+    if (!newStatus || !allowedStatuses.includes(newStatus)) {
+        console.error(`Invalid status update: "${newStatus}". Allowed statuses are: ${allowedStatuses.join(', ')}`);
+        return res.status(400).json({ message: `Invalid status: "${newStatus}".` });
+    }
+
+    task.status = newStatus;
 
     if (task.status === "Completed") {
         task.todoChecklist.forEach((item) => (item.completed = true));
         task.progress = 100;
+    } else {
+        // If status is changed from Completed to something else, reset progress if it was 100
+        if (oldStatus === "Completed" && newStatus !== "Completed") {
+            task.progress = 0; // Or recalculate based on todoChecklist
+            task.todoChecklist.forEach((item) => (item.completed = false)); // Optionally uncheck all todos
+        }
     }
 
-    await task.save();
-    res.json({ message: "Updated status" });
+    try {
+        await task.save();
+        console.log(`Task ${req.params.id} status updated successfully to ${newStatus}`);
+        res.json({ message: "Updated status" });
+    } catch (error) {
+        console.error(`Error saving task ${req.params.id} status update:`, error.message);
+        res.status(500).json({ message: "Failed to update task status.", error: error.message });
+    }
 };
 
 const updateTaskChecklist = async (req, res) => {
@@ -265,19 +288,27 @@ const getDashboardData = async (req, res) => {
 
 const getUserDashboardData = async (req, res) => {
     const userId = req.user._id;
+    console.log(`Fetching dashboard data for user ID: ${userId}`);
 
-    const totalTasks = await Task.countDocuments({ assignedTo: userId });
-    const pendingTasks = await Task.countDocuments({ assignedTo: userId, status: "Pending" });
-    const completedTasks = await Task.countDocuments({ assignedTo: userId, status: "Completed" });
+    const query = {
+        $or: [
+            { assignedTo: userId },
+            { createdBy: userId }
+        ]
+    };
+
+    const totalTasks = await Task.countDocuments(query);
+    const pendingTasks = await Task.countDocuments({ ...query, status: "Pending" });
+    const completedTasks = await Task.countDocuments({ ...query, status: "Completed" });
     const overdueTasks = await Task.countDocuments({
-        assignedTo: userId,
+        ...query,
         status: { $ne: "Completed" },
         dueDate: { $lt: new Date() }
     });
 
     const taskStatuses = ["Pending", "In Progress", "Completed"];
     const taskDistributionRaw = await Task.aggregate([
-        { $match: { assignedTo: userId } },
+        { $match: query },
         { $group: { _id: "$status", count: { $sum: 1 } } }
     ]);
 
@@ -291,7 +322,7 @@ const getUserDashboardData = async (req, res) => {
 
     const taskPriorities = ["Low", "Medium", "High"];
     const taskPriorityLevelRaw = await Task.aggregate([
-        { $match: { assignedTo: userId } },
+        { $match: query },
         { $group: { _id: "$priority", count: { $sum: 1 } } }
     ]);
 
@@ -300,11 +331,12 @@ const getUserDashboardData = async (req, res) => {
         return acc;
     }, {});
 
-    const recentTasks = await Task.find({ assignedTo: userId })
+    const recentTasks = await Task.find(query)
         .sort({ createdAt: -1 })
         .limit(10)
         .select('title status priority dueDate createdAt');
 
+    console.log(`Recent tasks for user ${userId}:`, recentTasks.map(task => task.title));
     console.log("User dashboard data prepared:", {
         taskDistribution,
         taskPriorityLevels

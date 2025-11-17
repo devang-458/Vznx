@@ -8,6 +8,7 @@ import TaskListTable from "../../components/TaskListTable";
 import Input from "../../components/Inputs/Input";
 import Button from "../../components/layouts/Button";
 import useFetchData from "../../hooks/useFetchData";
+import { IoTrash } from "react-icons/io5";
 
 const BulkOperationsTaskManager = () => {
     const { data: tasksData, loading, error, fetchData: refetchTasks } = useFetchData(
@@ -85,19 +86,23 @@ const BulkOperationsTaskManager = () => {
         setSelectedTasks(newSelected);
     };
 
-    const runBulk = async (endpoint, payload) => {
+    const runBulk = async (endpoint, payload, method = 'put') => {
         if (selectedTasks.size === 0) {
             alert("Select tasks first");
             return;
         }
 
         try {
-            await axiosInstance.put(endpoint, payload);
-            alert("Bulk update successful");
+            if (method === 'delete') {
+                await axiosInstance.delete(endpoint, { data: payload });
+            } else {
+                await axiosInstance[method](endpoint, payload);
+            }
+            alert("Bulk operation successful");
             setSelectedTasks(new Set());
             refetchTasks(); // Call refetchTasks from the hook
         } catch (err) {
-            alert("Bulk update failed");
+            alert("Bulk operation failed");
         }
     };
 
@@ -152,7 +157,7 @@ const BulkOperationsTaskManager = () => {
                     </div>
 
                     {/* Bulk Action Section */}
-                    <div className="bg-white rounded-lg shadow-md p-6 mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="bg-white rounded-lg shadow-md p-6 mb-6 grid grid-cols-1 md:grid-cols-5 gap-4">
 
                         <select
                             value={bulkStatus}
@@ -200,6 +205,20 @@ const BulkOperationsTaskManager = () => {
                             }
                         >
                             <LuFlag /> Update Priority
+                        </Button>
+
+                        <Button
+                            className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white"
+                            variant="danger"
+                            onClick={() => {
+                                if (window.confirm("Are you sure you want to delete the selected tasks?")) {
+                                    runBulk(API_PATHS.BULK_OPERATIONS.DELETE_TASKS, {
+                                        taskIds: Array.from(selectedTasks),
+                                    }, 'delete');
+                                }
+                            }}
+                        >
+                            <IoTrash /> Delete Selected
                         </Button>
 
                     </div>

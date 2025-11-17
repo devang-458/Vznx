@@ -76,14 +76,14 @@ const ProjectDetails = () => {
             <Button variant="secondary" onClick={() => navigate(`/admin/projects/${projectId}/issues`)}>
               View All Issues
             </Button>
-            <Button variant="secondary" onClick={() => navigate(`/admin/reports/burndown?projectId=${projectId}`)}>
+            <Button variant="secondary" onClick={() => navigate(`/admin/projects/${projectId}/burndown-chart`)}>
               View Burndown Chart
             </Button>
             <Button variant="primary" onClick={() => navigate(`/admin/projects/${projectId}/create-issue`)}>
               Create Issue
             </Button>
             {/* Placeholder for Edit Project */}
-            <Button variant="secondary" onClick={() => navigate(`/admin/projects/${projectId}/edit`)}>
+            <Button variant="secondary" onClick={() => navigate(`/admin/edit-project/${projectId}`)}>
               Edit Project
             </Button>
             <Button variant="danger" onClick={handleDeleteProject} disabled={deleting}>

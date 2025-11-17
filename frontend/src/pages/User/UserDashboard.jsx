@@ -306,7 +306,7 @@ const UserDashboard = () => {
           </div>
           <div className="bg-white rounded-2xl shadow-md overflow-hidden">
             <TaskListTable
-              tasks={filteredTasks}
+              tableData={filteredTasks}
               isLoading={loading}
               error={error}
               onRowClick={(task) => setModalTask(task)} // Open modal on row click

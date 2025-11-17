@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import Input from '../../components/Inputs/Input';
 import Button from '../../components/layouts/Button';
 import axiosInstance from '../../utils/axiosinstance';
@@ -16,6 +16,7 @@ const ISSUE_PRIORITIES = ['Low', 'Medium', 'High', 'Highest'];
 const CreateIssue = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useContext(UserContext);
 
   const [title, setTitle] = useState('');
@@ -26,7 +27,21 @@ const CreateIssue = () => {
   const [assigneeId, setAssigneeId] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [parentIssueId, setParentIssueId] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const taskId = queryParams.get('taskId');
+    const taskTitle = queryParams.get('taskTitle');
+
+    if (taskTitle) {
+      setTitle(`Related to: ${taskTitle}`);
+    }
+    if (taskId) {
+      setDescription(`This issue is related to task ID: ${taskId}`);
+      // Potentially set parentIssueId here if the backend supports linking issues this way
+      // setParentIssueId(taskId); // This would require the backend to treat tasks as issues or have a specific related_task field
+    }
+  }, [location.search]);
 
   // Fetch users for assignee dropdown
   const { data: usersData, loading: usersLoading, error: usersError } = useFetchData(

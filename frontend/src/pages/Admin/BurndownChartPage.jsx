@@ -4,7 +4,7 @@ import { useUserAuth } from '../../hooks/useUserAuth';
 import { UserContext } from '../../context/userContext';
 import useFetchData from '../../hooks/useFetchData';
 import { API_PATHS } from '../../utils/apiPaths';
-import { useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import Input from '../../components/Inputs/Input';
 import Button from '../../components/layouts/Button';
 import {
@@ -21,9 +21,10 @@ import {
 const BurndownChartPage = () => {
   useUserAuth();
   const { user } = useContext(UserContext);
+  const { projectId: projectIdFromParams } = useParams();
   const [searchParams] = useSearchParams();
 
-  const [projectId, setProjectId] = useState(searchParams.get('projectId') || '');
+  const [projectId, setProjectId] = useState(projectIdFromParams || searchParams.get('projectId') || '');
   const [startDate, setStartDate] = useState(searchParams.get('startDate') || new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(searchParams.get('endDate') || new Date().toISOString().split('T')[0]);
   const [fetchTrigger, setFetchTrigger] = useState(0); // To manually trigger refetch

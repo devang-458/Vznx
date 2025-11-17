@@ -92,6 +92,15 @@ const ProjectList = () => {
                   >
                     View Project
                   </Button>
+                  {user?.role === 'admin' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/admin/edit-project/${project._id}`)}
+                    >
+                      Edit
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}

@@ -7,7 +7,7 @@ const AuthLayout = ({ children }) => {
     <div className="flex">
       {/* Left side (form) */}
       <div className="w-screen h-screen md:w-[60vw] px-12 pt-8 pb-12">
-        <h2 className="font-stack text-2xl text-black ">Task Manager</h2>
+        <img src="/vznx.png" alt="Company Logo" className="h-10 w-auto" />
         {children}
       </div>
 

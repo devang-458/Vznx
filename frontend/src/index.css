@@ -1,5 +1,7 @@
 @import url('href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Stack+Sans+Notch:wght@200..700&display=swap');
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 @import "@radix-ui/themes/styles.css";
 
 @theme {
@@ -12,7 +14,9 @@
 @layer base {
   html, body {
     height: 100%;
-    overflow: hidden;
+    /* Removed overflow: hidden to allow scrolling */
+    scrollbar-width: none; /* For Firefox */
+    -ms-overflow-style: none;  /* For Internet Explorer and Edge */
   }
   html {
     font-family: var(--font-stack);
@@ -20,7 +24,7 @@
 
   body {
     background-color: #fcfbfc;
-    overflow-x: hidden;
+    /* Removed overflow-x: hidden */
   }
 }
 
@@ -170,22 +174,20 @@ table tbody tr:hover {
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 0px; /* Hide scrollbar for WebKit browsers */
+  height: 0px; /* Hide scrollbar for WebKit browsers */
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
+  background: transparent; /* Make track transparent */
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
+  background: transparent; /* Make thumb transparent */
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: transparent; /* Make thumb transparent on hover */
 }
 
 /* Status Badge Styles */

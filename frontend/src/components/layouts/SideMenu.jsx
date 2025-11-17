@@ -66,8 +66,8 @@ const SideMenu = ({ activeMenu }) => {
               onClick={() => handleClick(item.path)}
               className={`w-full flex items-center gap-4 text-md font-semibold py-3 px-6 mb-1 transition-colors duration-200 shrink-0
                 ${activeMenu === item.label
-                  ? 'text-primary bg-linear-to-r from-blue-50/40 to-blue-100/50 border-r-4 border-primary'
-                  : 'text-gray-700 hover:bg-blue-50/40 hover:text-primary'
+                  ? 'text-blueprint-blue bg-light-gray border-r-4 border-blueprint-blue'
+                  : 'text-dark-gray hover:bg-light-gray hover:text-blueprint-blue'
                 }`}
             >
               {Icon ? <Icon className="text-xl" /> : null}

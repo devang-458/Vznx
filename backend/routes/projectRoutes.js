@@ -7,12 +7,16 @@ const {
   getProject,
   updateProject,
   deleteProject,
+  generateProjectWorkflow,
 } = require('../controller/projectController');
 
 // All project routes are protected
 router.route('/')
   .post(protect, createProject)
   .get(protect, getProjects);
+
+router.route('/generate-workflow')
+  .post(protect, generateProjectWorkflow);
 
 router.route('/:id')
   .get(protect, getProject)

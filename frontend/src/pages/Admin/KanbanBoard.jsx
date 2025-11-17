@@ -6,159 +6,177 @@ import useFetchData from '../../hooks/useFetchData';
 import { API_PATHS } from '../../utils/apiPaths';
 import { useParams, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../utils/axiosinstance';
-// Import necessary components from react-beautiful-dnd
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-
-// Placeholder for IssueCard component
-const IssueCard = ({ issue, dragHandleProps }) => {
-  return (
-    <div className="bg-white rounded-lg shadow-sm p-3 mb-3 border border-gray-200 flex items-center">
-      <div {...dragHandleProps} className="cursor-grab mr-2 text-gray-400 hover:text-gray-600">
-        &#x22EE; {/* Unicode for three vertical dots */}
-      </div>
-      <div>
-        <h4 className="font-semibold text-sm text-gray-800">{issue.title}</h4>
-        <p className="text-xs text-gray-600 mt-1">
-          Assignee: {issue.assignee?.name || 'Unassigned'}
-        </p>
-        <p className="text-xs text-gray-500">Priority: {issue.priority}</p>
-        {/* Add more issue details as needed */}
-      </div>
-    </div>
-  );
-};
+import TaskCard from '../../components/Cards/TaskCard'; // Import the new TaskCard
+import TaskDetailModal from '../../components/TaskDetailModal'; // Import TaskDetailModal
 
 const KanbanBoard = () => {
   useUserAuth();
   const { user } = useContext(UserContext);
-  const { projectId } = useParams(); // Get project ID from URL
+  const { projectId } = useParams();
   const navigate = useNavigate();
   const [projectName, setProjectName] = useState('Loading Project...');
 
-  const handleAddTask = (status) => {
-    navigate('/admin/create-task-enhanced', { state: { projectId, status } });
-  };
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
 
-  // Fetch project details to get the project name
-  const { data: projectData, loading: projectLoading, error: projectError } = useFetchData(
+  // Fetch project details to get the project name and its tasks
+  const { data: projectData, loading: projectLoading, error: projectError, fetchData: refetchProject } = useFetchData(
     user && projectId ? API_PATHS.PROJECTS.GET_PROJECT_BY_ID(projectId) : null,
-    { initialData: null, skip: !user || !projectId }
+    { 
+      initialData: null, 
+      skip: !user || !projectId,
+      // Ensure tasks are populated from the backend
+      axiosConfig: { params: { populate: 'tasks' } }
+    }
   );
 
-  useEffect(() => {
-    if (projectData) {
-      setProjectName(projectData.name);
-    }
-  }, [projectData]);
-
-
-  // Ensure statuses are stable and don't re-organize based on fetch
-  const [statuses] = useState(['To Do', 'In Progress', 'Review', 'Blocked', 'Done']);
-  const [issuesByStatus, setIssuesByStatus] = useState(
+  // Define the columns for the Kanban board
+  const [statuses] = useState(['To Do', 'In Progress', 'Review', 'Completed']);
+  const [tasksByStatus, setTasksByStatus] = useState(
     statuses.reduce((acc, status) => ({ ...acc, [status]: [] }), {})
   );
-  // Fetch issues for the project
-  const {
-    data: issuesData,
-    loading,
-    error,
-    fetchData: refetchIssues,
-  } = useFetchData(
-    user && projectId ? API_PATHS.ISSUES.GET_ISSUES_BY_PROJECT(projectId) : null,
-    { initialData: [], skip: !user || !projectId }
-  );
 
   useEffect(() => {
-    console.log("ji",)
-    if (issuesData) {
-      // Organize issues by status
-      const organized = statuses.reduce((acc, status) => {
-        // Initialize each status with an empty array
-        acc[status] = issuesData.filter((issue) => issue.status === status);
+    if (projectData && Array.isArray(projectData.tasks)) {
+      setProjectName(projectData.name);
+      // Organize the project's tasks by their status
+      const organizedTasks = statuses.reduce((acc, status) => {
+        acc[status] = projectData.tasks.filter((task) => task.status === status) || [];
         return acc;
       }, {});
-      setIssuesByStatus(organized);
+      setTasksByStatus(organizedTasks);
+    } else if (projectData && !projectData.tasks) {
+      // If projectData exists but tasks is null/undefined, initialize with empty arrays
+      setProjectName(projectData.name);
+      const organizedTasks = statuses.reduce((acc, status) => ({ ...acc, [status]: [] }), {});
+      setTasksByStatus(organizedTasks);
     }
-  }, [issuesData, statuses]);
+  }, [projectData, statuses]);
 
-  // Function to handle status update (will be called by drag and drop)
-  const updateIssueStatus = async (issueId, newStatus) => {
+  // Function to handle task status updates via API
+  const updateTaskStatus = async (taskId, newStatus) => {
+    console.log(`Frontend: Attempting to update task ${taskId} to status ${newStatus}`);
     try {
-      await axiosInstance.put(API_PATHS.ISSUES.UPDATE_ISSUE_STATUS(issueId), {
+      await axiosInstance.put(API_PATHS.TASKS.UPDATE_TASK_STATUS(taskId), {
         status: newStatus,
       });
-      refetchIssues(); // Refetch issues to update the board
+      console.log(`Frontend: Task ${taskId} status updated successfully to ${newStatus}`);
+      // No need to refetch, optimistic update is smoother
     } catch (err) {
-      console.error('Failed to update issue status:', err);
-      // Optionally show a toast notification
-      // We should probably refetch here too to revert the optimistic change on failure
-      refetchIssues();
+      console.error(`Frontend: Failed to update task ${taskId} status to ${newStatus}:`, err);
+      // On error, refetch to revert the optimistic UI change
+      refetchProject();
     }
   };
 
-  // Handle the logic after a drag ends
-  const onDragEnd = (result) => {
-    // console.log('Drag result:', result); // Temporarily added for debugging
-    const { destination, source, draggableId } = result;
+  const { data: users, loading: usersLoading, error: usersError } = useFetchData(
+    user ? API_PATHS.USERS.GET_ALL_USERS : null,
+    { initialData: [], skip: !user }
+  );
 
-    // 1. Check if dropped outside a valid area
-    if (!destination) {
-      return;
-    }
-
-    // 2. Check if dropped in the same place
-    if (
-      destination.droppableId === source.droppableId &&
-      destination.index === source.index
-    ) {
-      return;
-    }
-
-    // 3. Handle moving to a different column (changing status)
-    if (source.droppableId !== destination.droppableId) {
-      // Optimistically update the UI for a smooth experience
-      setIssuesByStatus((prev) => {
-        const sourceColumn = Array.from(prev[source.droppableId]);
-        const destColumn = Array.from(prev[destination.droppableId]);
-
-        // Find and remove the issue from the source column
-        const [movedIssue] = sourceColumn.splice(source.index, 1);
-
-        // Add the issue to the destination column
-        destColumn.splice(destination.index, 0, movedIssue);
-
-        return {
-          ...prev,
-          [source.droppableId]: sourceColumn,
-          [destination.droppableId]: destColumn,
-        };
+  // Function to handle assignee changes
+  const handleAssigneeChange = async (taskId, newAssigneeId) => {
+    try {
+      await axiosInstance.put(API_PATHS.TASKS.UPDATE_TASK(taskId), {
+        assignedTo: newAssigneeId ? [newAssigneeId] : [],
       });
-
-      // Call the API to persist the change
-      updateIssueStatus(draggableId, destination.droppableId);
-    }
-    // 4. Handle re-ordering within the same column
-    else {
-      const columnId = source.droppableId;
-      const column = issuesByStatus[columnId];
-      const newColumn = Array.from(column);
-
-      // Remove the item
-      const [movedItem] = newColumn.splice(source.index, 1);
-      // Insert it at the new position
-      newColumn.splice(destination.index, 0, movedItem);
-
-      // Update the state locally for a responsive UI
-      setIssuesByStatus((prev) => ({
-        ...prev,
-        [columnId]: newColumn,
-      }));
-      // Note: This re-ordering is not persisted to the backend
-      // as there's no API call for it in the original code.
+      // Refetch project data to update the UI with the new assignee
+      refetchProject();
+    } catch (err) {
+      console.error('Failed to update task assignee:', err);
     }
   };
 
-  if ((loading && !issuesData.length) || projectLoading) { // Show loading only on initial load
+  // Handle the logic after a drag-and-drop action ends
+  const onDragEnd = (result) => {
+    try {
+        const { destination, source, draggableId } = result;
+
+        if (!destination) {
+        return;
+        }
+
+        if (
+        destination.droppableId === source.droppableId &&
+        destination.index === source.index
+        ) {
+        return;
+        }
+
+        const start = tasksByStatus[source.droppableId];
+        const end = tasksByStatus[destination.droppableId];
+
+        if (!start || !end) {
+            console.error("Start or end column not found");
+            return;
+        }
+
+        if (start === end) {
+        const newTasks = Array.from(start);
+        const [reorderedItem] = newTasks.splice(source.index, 1);
+        newTasks.splice(destination.index, 0, reorderedItem);
+
+        const newTasksByStatus = {
+            ...tasksByStatus,
+            [source.droppableId]: newTasks,
+        };
+        setTasksByStatus(newTasksByStatus);
+        } else {
+        const startTasks = Array.from(start);
+        const [movedItem] = startTasks.splice(source.index, 1);
+        const endTasks = Array.from(end);
+        endTasks.splice(destination.index, 0, movedItem);
+
+        const newTasksByStatus = {
+            ...tasksByStatus,
+            [source.droppableId]: startTasks,
+            [destination.droppableId]: endTasks,
+        };
+        setTasksByStatus(newTasksByStatus);
+        }
+        updateTaskStatus(draggableId, destination.droppableId);
+    } catch (error) {
+        console.error("Error in onDragEnd:", error);
+        refetchProject();
+    }
+  };
+
+  const handleTaskCardClick = (taskId) => {
+    setSelectedTaskId(taskId);
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedTaskId(null);
+  };
+
+  const handleTaskUpdate = (updatedTask) => {
+    // Update the tasks in the state to reflect changes from the modal
+    setTasksByStatus(prev => {
+      const newTasksByStatus = { ...prev };
+      // Find the task in its current status column and update it
+      for (const statusKey in newTasksByStatus) {
+        const taskIndex = newTasksByStatus[statusKey].findIndex(task => task._id === updatedTask._id);
+        if (taskIndex !== -1) {
+          // If status changed, move it to the new column
+          if (newTasksByStatus[statusKey][taskIndex].status !== updatedTask.status) {
+            newTasksByStatus[statusKey].splice(taskIndex, 1); // Remove from old column
+            newTasksByStatus[updatedTask.status] = [...(newTasksByStatus[updatedTask.status] || []), updatedTask]; // Add to new column
+          } else {
+            newTasksByStatus[statusKey][taskIndex] = updatedTask; // Update in same column
+          }
+          return newTasksByStatus;
+        }
+      }
+      return newTasksByStatus;
+    });
+    refetchProject(); // Also refetch the project to ensure full data consistency
+  };
+
+
+  if (projectLoading || usersLoading) {
     return (
       <DashboardLayout activeMenu="Kanban Board">
         <div className="flex justify-center items-center h-64">
@@ -168,11 +186,11 @@ const KanbanBoard = () => {
     );
   }
 
-  if (error || projectError) {
+  if (projectError || usersError) {
     return (
       <DashboardLayout activeMenu="Kanban Board">
         <div className="flex justify-center items-center h-64">
-          <p className="text-red-500">Error: {error?.message || projectError?.message}</p>
+          <p className="text-red-500">Error: {projectError?.message || usersError?.message}</p>
         </div>
       </DashboardLayout>
     );
@@ -182,54 +200,41 @@ const KanbanBoard = () => {
     <DashboardLayout activeMenu="Kanban Board">
       <div className="p-4 md:p-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-6">
-          Kanban Board for Project: {projectName}
+          {projectName}
         </h1>
 
-        {/* Wrap the entire board in DragDropContext */}
         <DragDropContext onDragEnd={onDragEnd}>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {statuses.map((status) => (
-              // Each column is a Droppable area
               <Droppable key={status} droppableId={status}>
                 {(provided, snapshot) => (
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`bg-gray-100 rounded-lg p-4 shadow-md transition-colors ${snapshot.isDraggingOver ? 'bg-blue-100' : ''
-                      }`}
+                    className={`bg-gray-100 rounded-lg p-4 shadow-md transition-colors ${snapshot.isDraggingOver ? 'bg-blue-100' : ''}`}
                   >
-                    <h2 className="text-lg font-semibold text-gray-800 mb-4 capitalize flex justify-between items-center">
-                      {status}
-                      <button
-                        className="text-gray-500 hover:text-blue-600 focus:outline-none"
-                        // onClick={() => handleAddTask(status)} // To be implemented
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                        </svg>
-                      </button>
+                    <h2 className="text-lg font-semibold text-gray-800 mb-4 capitalize">
+                      {status} ({tasksByStatus[status]?.length || 0})
                     </h2>
-                    <div className="min-h-[200px]"> {/* Ensure droppable area has height */}
-                      {issuesByStatus[status]?.map((issue, index) => (
-                        // Each card is Draggable
+                    <div className="min-h-[300px]">
+                      {Array.isArray(tasksByStatus[status]) && tasksByStatus[status].map((task, index) => (
                         <Draggable
-                          key={String(issue._id)}
-                          draggableId={String(issue._id)}
+                          key={String(task._id)}
+                          draggableId={String(task._id)}
                           index={index}
                         >
                           {(provided, snapshot) => (
                             <div
                               ref={provided.innerRef}
                               {...provided.draggableProps}
-                              className={`transition-shadow ${snapshot.isDragging ? 'shadow-xl' : 'shadow-sm'
-                                }`}
+                              className={`transition-shadow ${snapshot.isDragging ? 'shadow-xl' : 'shadow-sm'}`}
+                              onClick={() => handleTaskCardClick(task._id)} // Add onClick handler
                             >
-                              <IssueCard issue={issue} dragHandleProps={provided.dragHandleProps} />
+                              <TaskCard task={task} dragHandleProps={provided.dragHandleProps} users={users} onAssigneeChange={handleAssigneeChange} />
                             </div>
                           )}
                         </Draggable>
                       ))}
-                      {/* Placeholder adds space when dragging */}
                       {provided.placeholder}
                     </div>
                   </div>
@@ -239,6 +244,16 @@ const KanbanBoard = () => {
           </div>
         </DragDropContext>
       </div>
+      {selectedTaskId && (
+        <TaskDetailModal
+          isOpen={isModalOpen}
+          onClose={handleModalClose}
+          taskId={selectedTaskId}
+          onTaskUpdate={handleTaskUpdate}
+          users={users}
+          onAssigneeChange={handleAssigneeChange}
+        />
+      )}
     </DashboardLayout>
   );
 };

@@ -102,5 +102,6 @@ export const API_PATHS = {
         CREATE_PROJECT: "/api/projects",
         UPDATE_PROJECT: (projectId) => `/api/projects/${projectId}`,
         DELETE_PROJECT: (projectId) => `/api/projects/${projectId}`,
+        GENERATE_WORKFLOW: "/api/projects/generate-workflow",
     }
 }

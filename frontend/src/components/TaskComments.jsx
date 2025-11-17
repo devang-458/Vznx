@@ -1,29 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { IoClose, IoHeartOutline, IoHeart, IoThumbsUp, IoReaderOutline } from 'react-icons/io5';
-import axiosInstance from '../../utils/axiosinstance';
+import { IoClose, IoHeartOutline, IoHeart, IoThumbsUp } from 'react-icons/io5';
+import axiosInstance from '../utils/axiosinstance';
 import moment from 'moment';
-import Button from '../layouts/Button';
+import Button from './layouts/Button';
 
-export default function TaskComments({ taskId, isOpen, onClose }) {
+export default function TaskComments({ taskId, onCommentAdded }) {
   const [comments, setComments] = useState([]);
-  const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
-  const LIMIT = 20;
+  const LIMIT = 5; // Reduced limit for embedded view
 
   useEffect(() => {
-    if (isOpen && taskId) {
-      loadComments();
+    if (taskId) {
+      setPage(0); // Reset page when taskId changes
+      setComments([]); // Clear comments when taskId changes
+      loadComments(0); // Load first page of comments
     }
-  }, [isOpen, taskId, page]);
+  }, [taskId]);
 
-  const loadComments = async () => {
+  // Effect to refetch comments when onCommentAdded is triggered (from parent)
+  useEffect(() => {
+    if (onCommentAdded) {
+      loadComments(0); // Refetch comments from page 0
+    }
+  }, [onCommentAdded]);
+
+
+  const loadComments = async (currentPage) => {
     try {
       setLoading(true);
       const response = await axiosInstance.get(
-        `/api/tasks/${taskId}/comments?limit=${LIMIT}&skip=${page * LIMIT}`
+        `/api/tasks/${taskId}/comments?limit=${LIMIT}&skip=${currentPage * LIMIT}`
       );
-      if (page === 0) {
+      if (currentPage === 0) {
         setComments(response.data.data.comments);
       } else {
         setComments(prev => [...prev, ...response.data.data.comments]);
@@ -32,25 +41,6 @@ export default function TaskComments({ taskId, isOpen, onClose }) {
       console.error('Error loading comments:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleAddComment = async (e) => {
-    e.preventDefault();
-    if (!newComment.trim()) return;
-
-    try {
-      const response = await axiosInstance.post(
-        `/api/tasks/${taskId}/comments`,
-        {
-          content: newComment,
-          mentions: []
-        }
-      );
-      setComments([response.data.data, ...comments]);
-      setNewComment('');
-    } catch (error) {
-      alert('Error posting comment: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -79,132 +69,91 @@ export default function TaskComments({ taskId, isOpen, onClose }) {
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-full max-w-2xl max-h-[80vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            <IoReaderOutline /> Comments ({comments.length})
-          </h2>
-          <Button onClick={onClose} variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700">
-            <IoClose className="text-2xl" />
-          </Button>
-        </div>
+    <div className="space-y-4">
+      {comments.length === 0 && !loading && (
+        <p className="text-center text-gray-500 py-4">No comments yet. Be the first to comment!</p>
+      )}
 
-        {/* Comments List */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {comments.length === 0 && !loading && (
-            <p className="text-center text-gray-500 py-8">No comments yet. Start a conversation!</p>
-          )}
+      {comments.map(comment => (
+        <div key={comment._id} className="bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition">
+          <div className="flex items-start gap-3">
+            {/* Avatar */}
+            <img
+              src={comment.author?.profileImageUrl || 'https://ui-avatars.com/api/?name=' + (comment.author?.name || 'User') + '&background=random'}
+              alt={comment.author?.name}
+              className="w-8 h-8 rounded-full object-cover"
+            />
 
-          {comments.map(comment => (
-            <div key={comment._id} className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition">
-              <div className="flex items-start gap-3">
-                {/* Avatar */}
-                <img
-                  src={comment.author?.profileImageUrl || 'https://via.placeholder.com/40'}
-                  alt={comment.author?.name}
-                  className="w-10 h-10 rounded-full object-cover"
-                />
+            {/* Comment Content */}
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-sm">{comment.author?.name}</span>
+                <span className="text-xs text-gray-500">
+                  {moment(comment.createdAt).fromNow()}
+                </span>
+                {comment.isEdited && <span className="text-xs text-gray-400">(edited)</span>}
+              </div>
 
-                {/* Comment Content */}
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-sm">{comment.author?.name}</span>
-                    <span className="text-xs text-gray-500">
-                      {moment(comment.createdAt).fromNow()}
-                    </span>
-                    {comment.isEdited && <span className="text-xs text-gray-400">(edited)</span>}
-                  </div>
+              <p className="text-sm text-gray-800 mt-1 word-wrap">{comment.content}</p>
 
-                  <p className="text-sm text-gray-800 mt-1 word-wrap">{comment.content}</p>
-
-                  {/* Reactions */}
-                  <div className="flex items-center gap-2 mt-2">
-                    <Button
-                      onClick={() => handleReaction(comment._id, '👍')}
-                      variant="ghost"
-                      size="sm"
-                      className="text-xs hover:bg-white px-2 py-1 rounded transition"
-                    >
-                      👍 {comment.reactions?.filter(r => r.emoji === '👍').length || 0}
-                    </Button>
-                    <Button
-                      onClick={() => handleReaction(comment._id, '❤️')}
-                      variant="ghost"
-                      size="sm"
-                      className="text-xs hover:bg-white px-2 py-1 rounded transition"
-                    >
-                      ❤️ {comment.reactions?.filter(r => r.emoji === '❤️').length || 0}
-                    </Button>
-                    <Button
-                      onClick={() => handleReaction(comment._id, '🎉')}
-                      variant="ghost"
-                      size="sm"
-                      className="text-xs hover:bg-white px-2 py-1 rounded transition"
-                    >
-                      🎉 {comment.reactions?.filter(r => r.emoji === '🎉').length || 0}
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Delete Button */}
+              {/* Reactions */}
+              <div className="flex items-center gap-2 mt-2">
                 <Button
-                  onClick={() => handleDeleteComment(comment._id)}
+                  onClick={() => handleReaction(comment._id, '👍')}
                   variant="ghost"
                   size="sm"
-                  className="text-gray-400 hover:text-red-500 transition"
-                  title="Delete comment"
+                  className="text-xs hover:bg-white px-2 py-1 rounded transition"
                 >
-                  <IoClose className="text-lg" />
+                  👍 {comment.reactions?.filter(r => r.emoji === '👍').length || 0}
+                </Button>
+                <Button
+                  onClick={() => handleReaction(comment._id, '❤️')}
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs hover:bg-white px-2 py-1 rounded transition"
+                >
+                  ❤️ {comment.reactions?.filter(r => r.emoji === '❤️').length || 0}
+                </Button>
+                <Button
+                  onClick={() => handleReaction(comment._id, '🎉')}
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs hover:bg-white px-2 py-1 rounded transition"
+                >
+                  🎉 {comment.reactions?.filter(r => r.emoji === '🎉').length || 0}
                 </Button>
               </div>
             </div>
-          ))}
 
-          {comments.length > 0 && (
+            {/* Delete Button */}
             <Button
-              onClick={() => setPage(prev => prev + 1)}
+              onClick={() => handleDeleteComment(comment._id)}
               variant="ghost"
-              className="w-full text-blue-600 hover:text-blue-700 font-medium text-sm"
+              size="sm"
+              className="text-gray-400 hover:text-red-500 transition"
+              title="Delete comment"
             >
-              Load More Comments
+              <IoClose className="text-lg" />
             </Button>
-          )}
+          </div>
         </div>
+      ))}
 
-        {/* Add Comment */}
-        <div className="border-t p-4 bg-gray-50">
-          <form onSubmit={handleAddComment} className="space-y-3">
-            <textarea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Add a comment... Use @ to mention someone"
-              rows={3}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-            />
-            <div className="flex items-center justify-between">
-              <div className="flex gap-2">
-                <Button type="button" variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700">
-                  📎
-                </Button>
-              </div>
-              <Button
-                type="submit"
-                disabled={!newComment.trim() || loading}
-                variant="primary"
-                size="sm"
-                className="px-6 py-2"
-              >
-                {loading ? 'Posting...' : 'Post Comment'}
-              </Button>
-            </div>
-          </form>
-        </div>
-      </div>
+      {loading && <p className="text-center text-gray-500 py-4">Loading more comments...</p>}
+
+      {comments.length > 0 && comments.length % LIMIT === 0 && ( // Only show load more if there might be more comments
+        <Button
+          onClick={() => {
+            setPage(prev => prev + 1);
+            loadComments(page + 1);
+          }}
+          variant="ghost"
+          className="w-full text-blue-600 hover:text-blue-700 font-medium text-sm"
+        >
+          Load More Comments
+        </Button>
+      )}
     </div>
   );
 }
