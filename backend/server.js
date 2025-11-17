@@ -77,10 +77,10 @@ app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-app.get('/hi', (req,res ) => {
-  res.json(200, {
-    message: "Hi user, Im not dead."
-  })
+app.get('/hi', (req, res) => {
+  res.status(200).json({
+    message: "Hi user, I'm not dead."
+  });
 });
 
 
