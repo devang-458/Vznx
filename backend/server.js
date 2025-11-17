@@ -77,10 +77,10 @@ app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-app.post('/hi', (res, req) => {
-res.json(200,  {
-  message: "Hi user, Im not dead."
-})
+app.get('/hi', (req,res ) => {
+  res.json(200, {
+    message: "Hi user, Im not dead."
+  })
 });
 
 
