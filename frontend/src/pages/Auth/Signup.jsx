@@ -149,7 +149,7 @@ const Signup = () => {
             type='submit'
             variant='primary'
             disabled={loading}
-            className='w-full'
+            className='w-full mt-4'
           >
             {loading ? (
               <div className="flex items-center justify-center">

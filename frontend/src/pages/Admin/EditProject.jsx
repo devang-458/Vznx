@@ -16,6 +16,8 @@ const EditProject = () => {
 
   const [projectName, setProjectName] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -36,6 +38,8 @@ const EditProject = () => {
       setProjectName(projectData.name || '');
       setProjectDescription(projectData.description || '');
       setSelectedMembers(projectData.members?.map(member => member._id) || []);
+      setStartDate(projectData.startDate ? new Date(projectData.startDate).toISOString().split('T')[0] : '');
+      setEndDate(projectData.endDate ? new Date(projectData.endDate).toISOString().split('T')[0] : '');
     }
   }, [projectData]);
 
@@ -48,6 +52,8 @@ const EditProject = () => {
         name: projectName,
         description: projectDescription,
         members: selectedMembers,
+        startDate: startDate || null,
+        endDate: endDate || null,
       });
       toast.success('Project updated successfully!');
       navigate(`/admin/projects/${projectId}`); // Navigate back to project details
@@ -140,6 +146,32 @@ const EditProject = () => {
                     rows="4"
                     className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   ></textarea>
+                </div>
+
+                <div>
+                  <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
+                    Start Date
+                  </label>
+                  <Input
+                    id="startDate"
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
+                    End Date
+                  </label>
+                  <Input
+                    id="endDate"
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full"
+                  />
                 </div>
               </div>
               <div className="space-y-4">

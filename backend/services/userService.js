@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Task = require('../models/Task');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const debug = require('../config/debug')('userService');
 
 const generateToken = (userId) => {
     return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
@@ -14,6 +15,9 @@ const registerUser = async (userData, adminInviteToken) => {
     if (userExists) {
         throw new Error('User already exists');
     }
+
+    debug('Received adminInviteToken:', adminInviteToken);
+    debug('process.env.ADMIN_INVITE_TOKEN:', process.env.ADMIN_INVITE_TOKEN);
 
     let role = 'member';
     if (adminInviteToken && adminInviteToken === process.env.ADMIN_INVITE_TOKEN) {

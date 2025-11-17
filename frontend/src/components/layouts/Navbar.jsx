@@ -89,7 +89,7 @@ const Navbar = ({ activeMenu }) => {
                     >
                         <LuListTodo className="text-2xl text-dark-gray" />
                     </Button>
-                    <Button
+                    {/* <Button
                         variant="ghost"
                         size="icon"
                         onClick={createTask}
@@ -97,7 +97,7 @@ const Navbar = ({ activeMenu }) => {
                         title="Create Task"
                     >
                         <LuCirclePlus className="text-2xl text-gray-500" />
-                    </Button>
+                    </Button> */}
                     <Button
                         variant="ghost"
                         size="icon"
@@ -117,7 +117,7 @@ const Navbar = ({ activeMenu }) => {
                         <LuBell className="text-2xl text-gray-500" />
                     </Button>
 
-                    <Button
+                    {/* <Button
                         variant="ghost"
                         size="icon"
                         onClick={createProject}
@@ -125,7 +125,7 @@ const Navbar = ({ activeMenu }) => {
                         title="Create Project"
                     >
                         <LuFile className="text-2xl text-gray-500" />
-                    </Button>
+                    </Button> */}
                     {openNotificationPopup && <NotificationPopup />}
                 </div>
 

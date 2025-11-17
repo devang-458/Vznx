@@ -1,6 +1,7 @@
 const Project = require('../models/Project');
 const User = require('../models/User'); // Assuming User model is needed for owner/members
 const Task = require('../models/Task');
+const debug = require('../config/debug')('projectController');
 
 // A more realistic placeholder for the LLM API call
 const getAIResponse = async (prompt) => {
@@ -167,7 +168,7 @@ const getProject = async (req, res) => {
     if (!isOwner && !isMember) {
       return res.status(403).json({ message: 'Not authorized to access this project' });
     }
-
+    debug('Project object being sent to frontend:', project);
     res.status(200).json(project);
   } catch (error) {
     console.error('Error fetching project:', error);
@@ -180,7 +181,10 @@ const getProject = async (req, res) => {
 // @access  Private
 const updateProject = async (req, res) => {
   try {
-    const { name, description, members } = req.body;
+    const { name, description, members, startDate, endDate } = req.body;
+
+    debug('Received startDate:', startDate);
+    debug('Received endDate:', endDate);
 
     let project = await Project.findById(req.params.id);
 
@@ -196,8 +200,12 @@ const updateProject = async (req, res) => {
     project.name = name || project.name;
     project.description = description || project.description;
     project.members = members !== undefined ? members : project.members; // Allow clearing members
+    project.startDate = startDate !== undefined ? startDate : project.startDate;
+    project.endDate = endDate !== undefined ? endDate : project.endDate;
 
+    debug('Project object before save:', project);
     await project.save();
+    debug('Project object after save:', project);
     res.status(200).json(project);
   } catch (error) {
     console.error('Error updating project:', error);

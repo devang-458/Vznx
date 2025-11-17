@@ -1,7 +1,5 @@
 @import url('href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Stack+Sans+Notch:wght@200..700&display=swap');
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 @import "@radix-ui/themes/styles.css";
 
 @theme {
@@ -12,12 +10,17 @@
 }
 
 @layer base {
-  html, body {
+
+  html,
+  body {
     height: 100%;
     /* Removed overflow: hidden to allow scrolling */
-    scrollbar-width: none; /* For Firefox */
-    -ms-overflow-style: none;  /* For Internet Explorer and Edge */
+    scrollbar-width: none;
+    /* For Firefox */
+    -ms-overflow-style: none;
+    /* For Internet Explorer and Edge */
   }
+
   html {
     font-family: var(--font-stack);
   }
@@ -174,20 +177,25 @@ table tbody tr:hover {
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 0px; /* Hide scrollbar for WebKit browsers */
-  height: 0px; /* Hide scrollbar for WebKit browsers */
+  width: 0px;
+  /* Hide scrollbar for WebKit browsers */
+  height: 0px;
+  /* Hide scrollbar for WebKit browsers */
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent; /* Make track transparent */
+  background: transparent;
+  /* Make track transparent */
 }
 
 ::-webkit-scrollbar-thumb {
-  background: transparent; /* Make thumb transparent */
+  background: transparent;
+  /* Make thumb transparent */
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: transparent; /* Make thumb transparent on hover */
+  background: transparent;
+  /* Make thumb transparent on hover */
 }
 
 /* Status Badge Styles */

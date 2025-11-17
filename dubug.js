@@ -1,0 +1,47 @@
+Project object being sent to frontend: {
+  _id: new ObjectId('691b0d5390f17cf6a50a6738'),
+  name: 'Downtown Coffee Shop Renovation - Permit Phase',
+  description: 'Project generated from prompt: "Downtown Coffee Shop Renovation - Permit Phase"',
+  owner: {
+    _id: new ObjectId('691100dcc45bb0eec1e0ce1c'),
+    name: 'hello',
+    email: 'hi@gmail.com'
+  },
+  members: [],
+  tasks: [
+    {
+      _id: new ObjectId('691b0d5390f17cf6a50a673a'),
+      title: 'Initial Client Consultation',
+      description: 'Meet with the client to discuss project goals, budget, and requirements.',
+      priority: 'High',
+      status: 'To Do',
+      dueDate: 2025-11-24T11:56:03.946Z,
+      assignedTo: [],
+      createdBy: new ObjectId('691100dcc45bb0eec1e0ce1c'),
+      attachments: [],
+      progress: 0,
+      comments: [],
+      project: new ObjectId('691b0d5390f17cf6a50a6738'),
+      todoChecklist: [],
+      __v: 0,
+      createdAt: 2025-11-17T11:56:03.953Z,
+      updatedAt: 2025-11-17T11:56:03.953Z
+    },
+    {
+      _id: new ObjectId('691b0d5390f17cf6a50a673b'),
+      title: 'Site Analysis and Selection',
+      description: 'Evaluate potential sites, including zoning, environmental factors, and accessibility.',
+      priority: 'High',
+      status: 'To Do',
+      dueDate: 2025-11-24T11:56:03.946Z,
+      assignedTo: [],
+      createdBy: new ObjectId('691100dcc45bb0eec1e0ce1c'),
+      attachments: [],
+      progress: 0,
+      comments: [],
+      project: new ObjectId('691b0d5390f17cf6a50a6738'),
+      todoChecklist: [],
+      __v: 0,
+      createdAt: 2025-11-17T11:56:03.953Z,
+      updatedAt: 2025-11-17T11:56:03.953Z
+    },

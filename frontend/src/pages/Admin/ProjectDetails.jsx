@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import { useNavigate, useParams } from 'react-router-dom';
 import useFetchData from '../../hooks/useFetchData';
@@ -14,6 +14,12 @@ const ProjectDetails = () => {
   const navigate = useNavigate();
   const { user } = useContext(UserContext);
   const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    if (user && projectId) {
+      refetchProject();
+    }
+  }, [user, projectId]);
 
   const { data: project, loading, error, fetchData: refetchProject } = useFetchData(
     user && projectId ? API_PATHS.PROJECTS.GET_PROJECT_BY_ID(projectId) : null,
@@ -121,6 +127,14 @@ const ProjectDetails = () => {
             <div>
               <p className="text-sm font-medium text-gray-600">Last Updated:</p>
               <p className="text-gray-800">{new Date(project.updatedAt).toLocaleDateString()}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Start Date:</p>
+              <p className="text-gray-800">{project.startDate ? new Date(project.startDate).toLocaleDateString() : 'N/A'}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">End Date:</p>
+              <p className="text-gray-800">{project.endDate ? new Date(project.endDate).toLocaleDateString() : 'N/A'}</p>
             </div>
           </div>
         </div>
