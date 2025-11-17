@@ -69,18 +69,20 @@ app.use('/api/insights', insightRoutes);
 
 app.use("/upload", express.static(path.join(__dirname, "uploads")));
 
+app.get('/hi', (req, res) => {
+  res.status(200).json({
+    message: "Hi user, I'm not dead."
+  });
+});
+
+
+
 // Error handling middleware
 app.use(errorHandler);
 
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
-});
-
-app.get('/hi', (req, res) => {
-  res.status(200).json({
-    message: "Hi user, I'm not dead."
-  });
 });
 
 
