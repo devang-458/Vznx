@@ -5,7 +5,6 @@ import { UserContext } from '../../context/userContext';
 import axiosInstance from '../../utils/axiosinstance';
 import { API_PATHS } from '../../utils/apiPaths';
 import moment from 'moment';
-import InfoCard from '../../components/Cards/InfoCard';
 import { addThousandsSeparator } from '../../utils/helper';
 
 import {
@@ -14,7 +13,7 @@ import {
   IoHourglass,
   IoCheckmarkCircle
 } from "react-icons/io5";
-import { LuSquareArrowRight, LuCirclePlus, LuMessageCircle, LuUsers, LuBell } from 'react-icons/lu';
+import { LuSquareArrowRight, LuCirclePlus, LuMessageCircle, LuUsers, LuBell, LuTrendingUp, LuCalendar, LuSparkles } from 'react-icons/lu';
 import { FiZap } from 'react-icons/fi';
 
 import { useNavigate } from 'react-router-dom';
@@ -25,7 +24,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Button from '../../components/layouts/Button';
 import useFetchData from '../../hooks/useFetchData';
 
-const COLORS = ["#3B82F6", "#F59E0B", "#06B6D4", "#10B981"];
+const COLORS = ["#2563eb", "#f59e0b", "#0891b2", "#10b981"];
 
 // Predict overdue tasks (3-day window)
 const predictPotentiallyOverdue = (tasks = []) => {
@@ -58,57 +57,12 @@ const Dashboard = () => {
     { skip: !user, initialData: [] }
   );
 
-  // const [dashboardData, setDashboardData] = useState(null); // Removed
   const [pieChartData, setPieChartData] = useState([]);
-  const [barChartData, setBarChartData] = useState([]);
-  const [filter, setFilter] = useState({ status: 'all', mineOnly: false });
+  const [filter, setFilter] = useState({ status: 'all' });
   const [modalTask, setModalTask] = useState(null);
   const [fabOpen, setFabOpen] = useState(false);
-  // const [loading, setLoading] = useState(false); // Removed
-  // const [error, setError] = useState(null); // Removed
-
-  // Load dashboard data
-  // const getDashboardData = async () => { // Removed
-  //   if (!user) return;
-
-  //   setLoading(true);
-  //   setError(null);
-
-  //   try {
-  //     const res = await axiosInstance.get(API_PATHS.TASKS.GET_DASHBOARD_DATA);
-
-  //     const normalized = {
-  //       charts: res.data?.charts || {
-  //         taskDistribution: res.data?.taskDistribution || {},
-  //         taskPriorityLevels: res.data?.taskPriorityLevels || {}
-  //       },
-  //       recentTasks: res.data?.recentTasks || []
-  //     };
-
-  //     setDashboardData(normalized);
-
-  //     setPieChartData([
-  //       { name: "Pending", value: normalized.charts.taskDistribution?.Pending || 0 },
-  //       { name: "In Progress", value: normalized.charts.taskDistribution["In Progress"] || normalized.charts.taskDistribution?.InProgress || 0 },
-  //       { name: "Completed", value: normalized.charts.taskDistribution?.Completed || 0 }
-  //     ]);
-
-  //     setBarChartData([
-  //       { name: "Low", value: normalized.charts.taskPriorityLevels?.Low || 0 },
-  //       { name: "Medium", value: normalized.charts.taskPriorityLevels?.Medium || 0 },
-  //       { name: "High", value: normalized.charts.taskPriorityLevels?.High || 0 }
-  //     ]);
-
-  //   } catch (err) {
-  //     console.error(err);
-  //     setError("Failed to load dashboard data.");
-  //   }
-
-  //   setLoading(false);
-  // };
 
   useEffect(() => {
-    // if (user) getDashboardData(); // Replaced by hook's internal fetch
     if (dashboardData) {
       const normalized = {
         charts: dashboardData?.charts || {
@@ -123,16 +77,9 @@ const Dashboard = () => {
         { name: "In Progress", value: normalized.charts.taskDistribution["In Progress"] || normalized.charts.taskDistribution?.InProgress || 0 },
         { name: "Completed", value: normalized.charts.taskDistribution?.Completed || 0 }
       ]);
-
-      setBarChartData([
-        { name: "Low", value: normalized.charts.taskPriorityLevels?.Low || 0 },
-        { name: "Medium", value: normalized.charts.taskPriorityLevels?.Medium || 0 },
-        { name: "High", value: normalized.charts.taskPriorityLevels?.High || 0 }
-      ]);
     }
-  }, [dashboardData]); // Dependency changed to dashboardData
+  }, [dashboardData]);
 
-  // New Task button logic
   const createTask = () => {
     if (user?.role === "admin") {
       navigate("/admin/create-task");
@@ -141,250 +88,158 @@ const Dashboard = () => {
     }
   };
 
-  const sendMassage = () => {
-    navigate("/admin/messages")
-  }
-
   const totals = dashboardData?.charts?.taskDistribution || {};
   const totalAll = (totals.Pending || 0) + (totals["In Progress"] || totals.InProgress || 0) + (totals.Completed || 0);
-  const completionRate = totalAll ? Math.round((totals.Completed / totalAll) * 100) : 0;
-
+  
   const potentialOverdue = useMemo(() => predictPotentiallyOverdue(dashboardData?.recentTasks || []), [dashboardData]);
 
-  // Filtered task list
   const filteredTasks = useMemo(() => {
     if (!dashboardData?.recentTasks) return [];
-
     let list = [...dashboardData.recentTasks];
-
     if (filter.status !== "all") {
       list = list.filter(t => t.status === filter.status);
     }
-
-    if (filter.mineOnly && user) {
-      list = list.filter(t => t?.assignedTo?._id === user?._id);
-    }
-
     return list;
-  }, [dashboardData, filter, user]);
-
-  // Modal component
-  const TaskModal = ({ task, onClose }) => {
-    if (!task) return null;
-
-    return (
-      <AnimatePresence>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 grid place-items-center bg-black bg-opacity-40"
-          onClick={onClose}
-        >
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 20, opacity: 0 }}
-            className="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-lg font-semibold">{task.title}</h3>
-            <p className="text-sm text-gray-600 mt-1">{task.description}</p>
-
-            <div className="mt-4 flex gap-3 text-xs">
-              <div className="px-2 py-1 rounded bg-gray-200">Status: {task.status}</div>
-              <div className="px-2 py-1 rounded bg-gray-200">Priority: {task.priority}</div>
-              <div className="px-2 py-1 rounded bg-gray-200">Due: {moment(task.dueDate).format("MMM D")}</div>
-            </div>
-
-            <Button
-              variant="primary"
-              className="mt-5"
-              onClick={() => navigate(`/tasks/${task._id}`)}
-            >
-              Open Task
-            </Button>
-          </motion.div>
-        </motion.div>
-      </AnimatePresence>
-    );
-  };
+  }, [dashboardData, filter]);
 
   return (
     <DashboardLayout activeMenu="Dashboard">
-      <div className="min-h-screen bg-gray-50 p-6 md:p-10">
-
-        {/* HEADER */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div className="min-h-screen bg-slate-50 p-6 md:p-10 space-y-10">
+        
+        {/* TOP BAR */}
+        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-semibold">
-              Welcome back{user?.name ? `, ${user.name.split(' ')[0]}` : ''} 👋
+            <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">
+              Dashboard
             </h1>
-            <p className="text-sm text-gray-600">
-              {moment().format("dddd, Do MMM YYYY")}
+            <p className="text-slate-500 font-medium text-sm mt-1">
+              {moment().format("dddd, MMMM D, YYYY")}
             </p>
-
-
           </div>
 
-          {/* Filter + New Task */}
           <div className="flex items-center gap-3">
+             <button 
+                onClick={refetchDashboardData}
+                className="text-xs font-semibold text-slate-500 hover:text-blue-600 px-3 py-1.5 rounded-lg transition"
+             >
+                Refresh
+             </button>
+            <Button variant="primary" className="rounded-xl px-5 shadow-sm text-sm" onClick={createTask}>
+              + Create Task
+            </Button>
+          </div>
+        </header>
 
-            <div className="flex items-center gap-2  bg-white border rounded-full px-3 py-1 shadow-sm">
-              <select className="text-sm outline-none" value={filter.status} onChange={(e) => setFilter(f => ({ ...f, status: e.target.value }))}>
-                <option value="all">All statuses</option>
+        {/* BENTO GRID */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+          
+          {/* STATS */}
+          <div className="md:col-span-8 grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatCard label="All Tasks" value={totalAll} icon={<IoStatsChart />} />
+            <StatCard label="Pending" value={totals.Pending || 0} icon={<IoListCircle />} />
+            <StatCard label="Working" value={totals["In Progress"] || totals.InProgress || 0} icon={<IoHourglass />} />
+            <StatCard label="Completed" value={totals.Completed || 0} icon={<IoCheckmarkCircle />} />
+          </div>
+
+          {/* AI WIDGET */}
+          <div className="md:col-span-4 row-span-2">
+            <div className="bg-slate-900 rounded-3xl p-8 text-white h-full relative overflow-hidden shadow-xl">
+               <div className="relative z-10 flex flex-col h-full">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2.5 bg-white/10 rounded-xl">
+                      <LuSparkles className="text-sky-400" size={20} />
+                    </div>
+                    <span className="font-semibold text-sm tracking-wide">AI Assistant</span>
+                  </div>
+                  
+                  {insightsLoading ? (
+                    <div className="flex-1 text-slate-400 text-sm">Analyzing current workload...</div>
+                  ) : insightsData?.[0] ? (
+                    <div className="space-y-4 flex-1">
+                      <p className="text-base leading-relaxed text-slate-200">"{insightsData[0].insightText}"</p>
+                      <div className="text-xs text-sky-200/80 bg-white/5 p-4 rounded-xl border border-white/5">
+                        Suggested priority: <span className="text-white font-semibold">{insightsData[0].projectId?.name || "High Priority"}</span>
+                      </div>
+                    </div>
+                  ) : (
+                     <p className="text-slate-400 text-sm flex-1">No actionable insights yet.</p>
+                  )}
+
+                  <Button 
+                    variant="ghost" 
+                    className="mt-6 bg-white/5 hover:bg-white/10 text-white w-full rounded-xl text-xs font-semibold py-3"
+                    onClick={() => navigate('/admin/insights')}
+                  >
+                    View Analytics
+                  </Button>
+               </div>
+            </div>
+          </div>
+
+          {/* DISTRIBUTION */}
+          <div className="md:col-span-4 bg-white rounded-3xl p-8 border border-slate-100 shadow-sm">
+            <h5 className="font-bold text-slate-900 text-sm mb-8">Task Status Distribution</h5>
+            <div className="h-56 flex items-center justify-center">
+              <CustomPieChart data={pieChartData} colors={COLORS} />
+            </div>
+          </div>
+
+          {/* RECENT PROJECTS */}
+          <div className="md:col-span-4 bg-white rounded-3xl p-8 border border-slate-100 shadow-sm">
+             <div className="flex justify-between items-center mb-8">
+              <h5 className="font-bold text-slate-900 text-sm">Recent Projects</h5>
+              <button className="text-xs font-bold text-blue-600" onClick={() => navigate('/admin/projects')}>View All</button>
+            </div>
+            
+            <div className="space-y-5">
+              {projectsLoading ? (
+                [1,2].map(i => <div key={i} className="h-16 bg-slate-50 rounded-2xl animate-pulse"></div>)
+              ) : projectsData.slice(0, 3).map((project) => (
+                <div key={project._id} className="flex items-center justify-between group cursor-pointer" onClick={() => navigate(`/admin/projects/${project._id}/kanban`)}>
+                  <div className="flex items-center gap-4">
+                     <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm">
+                        {project.name.charAt(0)}
+                     </div>
+                     <div>
+                       <p className="font-semibold text-slate-900 text-sm">{project.name}</p>
+                       <p className="text-[11px] text-slate-400 font-medium">Updated {moment(project.updatedAt).fromNow()}</p>
+                     </div>
+                  </div>
+                  <LuSquareArrowRight className="text-slate-300 group-hover:text-blue-600" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* TABLE */}
+          <div className="md:col-span-12 bg-white rounded-3xl p-8 border border-slate-100 shadow-sm">
+            <div className="flex justify-between items-center mb-8">
+              <h5 className="font-bold text-slate-900 text-sm">Recent Deliverables</h5>
+              <select className="bg-slate-50 border-none text-xs font-semibold text-slate-600 rounded-lg px-3 py-1.5" value={filter.status} onChange={(e) => setFilter({ status: e.target.value })}>
+                <option value="all">All Statuses</option>
                 <option value="Pending">Pending</option>
                 <option value="InProgress">In Progress</option>
                 <option value="Completed">Completed</option>
               </select>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              {potentialOverdue.length > 0 && (
-                <div className="mt-3 flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded text-center mx-auto">
-                  <FiZap />
-                  {potentialOverdue.length} task(s) might miss deadline
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* STATS CARDS */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5 mt-8">
-          <InfoCard icon={<IoStatsChart />} label="Total" value={totalAll} color="bg-blue-500" />
-          <InfoCard icon={<IoListCircle />} label="Pending" value={totals.Pending || 0} color="bg-yellow-400" />
-          <InfoCard icon={<IoHourglass />} label="In Progress" value={totals["In Progress"] || totals.InProgress || 0} color="bg-cyan-400" />
-          <InfoCard icon={<IoCheckmarkCircle />} label="Completed" value={totals.Completed || 0} color="bg-green-400" />
-        </div>
-
-        {/* PREDICTIVE INSIGHTS */}
-        <div className="mt-8">
-          {insightsLoading ? (
-            <div className="flex justify-center items-center h-24 bg-white rounded-lg shadow-md">
-              <p className="text-gray-500">Loading insights...</p>
-            </div>
-          ) : insightsError ? (
-            <div className="flex justify-center items-center h-24 bg-white rounded-lg shadow-md">
-              <p className="text-red-500">Error loading insights: {insightsError.message}</p>
-            </div>
-          ) : insightsData.length === 0 ? (
-            <div className="text-center py-6 bg-white rounded-lg shadow-md">
-              <p className="text-gray-500">No predictive insights available yet.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {Array.isArray(insightsData) && insightsData.map((insight) => (
-                <div key={insight._id} className="bg-white rounded-lg shadow-md p-4 border-l-4 border-blue-500">
-                  <p className="text-sm font-medium text-gray-600 mb-1">{insight.type} for {insight.projectId?.name}</p>
-                  <p className="text-gray-800">{insight.insightText}</p>
-                  <p className="text-xs text-gray-500 mt-2">Severity: {insight.severity} | Generated: {new Date(insight.generatedAt).toLocaleDateString()}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* RECENT PROJECTS */}
-        <div className="mt-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Recent Projects</h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-blue-600"
-              onClick={() => navigate('/admin/projects')}
-            >
-              See All Projects
-            </Button>
-          </div>
-          {projectsLoading ? (
-            <div className="flex justify-center items-center h-24 bg-white rounded-lg shadow-md">
-              <p className="text-gray-500">Loading projects...</p>
-            </div>
-          ) : projectsError ? (
-            <div className="flex justify-center items-center h-24 bg-white rounded-lg shadow-md">
-              <p className="text-red-500">Error loading projects: {projectsError.message}</p>
-            </div>
-          ) : projectsData.length === 0 ? (
-            <div className="text-center py-6 bg-white rounded-lg shadow-md">
-              <p className="text-gray-500">No projects found.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-
-              {projectsData.slice(0, 3).map((project) => (
-                <div key={project._id} className="bg-white rounded-lg shadow-md p-4">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-1">{project.name}</h3>
-                  <p className="text-sm text-gray-600">{project.description || 'No description.'}</p>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="mt-3"
-                    onClick={() => navigate(`/admin/projects/${project._id}/kanban`)}
-                  >
-                    View Kanban
-                  </Button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* CHARTS */}
-        <h2 className="text-xl font-semibold text-gray-900 mt-6">Predictive Insights</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
-
-          <div className="bg-white rounded-2xl p-6 shadow-md">
-            <h5 className="font-medium">Task Distribution</h5>
-            <CustomPieChart data={pieChartData} colors={COLORS} />
+            <TaskListTable tableData={filteredTasks.slice(0, 5)} onRowClick={task => setModalTask(task)} />
           </div>
 
-          <div className="bg-white rounded-2xl p-6 shadow-md">
-            <h5 className="font-medium">Priority Levels</h5>
-            <CustomBarChart data={barChartData} />
-          </div>
-
-          {/* RECENT TASKS */}
-          <div className="md:col-span-2 bg-white rounded-2xl p-6 shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <h5 className="font-medium">Recent Tasks</h5>
-              <Button variant="ghost" size="sm" className="text-blue-600" onClick={refetchDashboardData}>
-                Refresh
-              </Button>
-            </div>
-
-            <TaskListTable tableData={filteredTasks} onRowClick={task => setModalTask(task)} />
-          </div>
         </div>
 
-        {/* FLOATING CREATE BUTTON */}
-        <div className="fixed right-6 bottom-6 z-50">
-          <button
-            onClick={() => setFabOpen(prev => !prev)}
-            className="w-14 h-14 rounded-full bg-blue-600 text-white shadow-lg grid place-items-center"
-          >
-            <LuCirclePlus size={22} />
-          </button>
-
-          {fabOpen && (
-            <div className="absolute bottom-20 right-0 bg-white shadow-xl rounded-xl p-3 w-48">
-              <Button
-                variant="ghost"
-                className="flex items-center gap-2 py-2"
-                onClick={createTask}
-              >
-                <LuCirclePlus /> Create Task
-              </Button>
-            </div>
-          )}
-        </div>
-
-        <TaskModal task={modalTask} onClose={() => setModalTask(null)} />
-
-        {error && <p className="text-red-600 mt-4">{error}</p>}
       </div>
     </DashboardLayout >
   );
 };
+
+const StatCard = ({ label, value, icon }) => (
+  <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
+    <div className="text-slate-400 mb-4">{React.cloneElement(icon, { size: 24 })}</div>
+    <div>
+        <p className="text-3xl font-extrabold text-slate-900">{addThousandsSeparator(value)}</p>
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mt-1">{label}</p>
+    </div>
+  </div>
+);
 
 export default Dashboard;

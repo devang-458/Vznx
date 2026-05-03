@@ -87,6 +87,7 @@ const AppContent = () => {
           <Route path='/admin/create-issue' element={<CreateIssue />} />
           <Route path='/admin/edit-project/:projectId' element={<EditProject />} />
           <Route path='/admin/projects/:projectId/burndown-chart' element={<BurndownChartPage />} />
+          <Route path='/admin/issues/:issueId' element={<IssueDetails />} />
           
         </Route>
 
@@ -100,6 +101,7 @@ const AppContent = () => {
           <Route path='/user/projects/:projectId/issues' element={<ProjectIssuesList />} />
           <Route path='/user/tasks/:id' element={<ViewTaskDetails />} />
           <Route path='/user/create-task' element={<CreateTask />} />
+          <Route path='/user/tasks/create' element={<CreateTask />} />
           <Route path='/user/users' element={<ManageUsers />} />
           <Route path='/user/setting' element={<DashboardLayout><UserSettings /></DashboardLayout>} />
           <Route path='/user/messages' element={<Messages />} />

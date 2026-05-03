@@ -23,55 +23,55 @@ export const SIDE_MENU_DATA = [
     },
     {
         id: "02",
-        label: "Manage Project",
+        label: "Projects",
         icons: LuFileBadge,
         path: '/admin/projects'
     },
     {
         id: "03",
-        label: "Manage Tasks",
+        label: "Tasks",
         icons: LuClipboardCheck,
         path: '/admin/tasks'
     },
     {
         id: "04",
-        label: "Create Task",
+        label: "New Task",
         icons: LuSquarePlus,
         path: '/admin/create-task'
     },
     {
         id: "05",
-        label: "Create Project",
+        label: "New Project",
         icons: LuFile,
         path: '/admin/create-project'
     },
     {
         id: "06",
-        label: "Task Insights",
+        label: "Insights",
         icons: LuTrendingUp,
         path: '/admin/insights'
     },
     {
         id: "07",
-        label: "Bulk Operations",
+        label: "Bulk Tools",
         icons: LuZap,
         path: '/admin/bulk-operations'
     },
     {
         id: "08",
-        label: "Team Members",
+        label: "Team",
         icons: LuUsers,
         path: '/admin/users'
     },
     {
         id: "09",
-        label: "Ai-Dashboard",
+        label: "AI Dashboard",
         icons: GiSmart,
         path: '/admin/ai-dashboard'
     },
     {
         id: "10",
-        label: "Setting",
+        label: "Settings",
         icons: LuSettings,
         path: '/admin/setting'
     },
@@ -92,32 +92,32 @@ export const SIDE_MENU_USER_DATA = [
     },
     {
         id: "02",
-        label: "Manage Tasks",
+        label: "Tasks",
         icons: LuClipboardCheck,
         path: '/user/tasks'
     },
     {
         id: "03",
-        label: "Manage Project",
+        label: "Projects",
         icons: LuFileBadge,
         path: '/user/projects'
     },
     {
         id: "04",
-        label: "Create Task",
+        label: "New Task",
         icons: LuSquarePlus,
         path: '/user/create-task'
     },
     {
         id: "05",
-        label: "Team Members",
+        label: "Team",
         icons: LuUsers,
         path: '/user/users'
     },
 
     {
         id: "06",
-        label: "Setting",
+        label: "Settings",
         icons: LuSettings,
         path: '/user/setting'
     },

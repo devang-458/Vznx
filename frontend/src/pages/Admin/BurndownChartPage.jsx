@@ -1,6 +1,5 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useMemo } from 'react';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
-import { useUserAuth } from '../../hooks/useUserAuth';
 import { UserContext } from '../../context/userContext';
 import useFetchData from '../../hooks/useFetchData';
 import { API_PATHS } from '../../utils/apiPaths';
@@ -17,25 +16,23 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
+import moment from 'moment';
 
 const BurndownChartPage = () => {
-  useUserAuth();
   const { user } = useContext(UserContext);
   const { projectId: projectIdFromParams } = useParams();
   const [searchParams] = useSearchParams();
 
   const [projectId, setProjectId] = useState(projectIdFromParams || searchParams.get('projectId') || '');
-  const [startDate, setStartDate] = useState(searchParams.get('startDate') || new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0]);
-  const [endDate, setEndDate] = useState(searchParams.get('endDate') || new Date().toISOString().split('T')[0]);
-  const [fetchTrigger, setFetchTrigger] = useState(0); // To manually trigger refetch
+  const [startDate, setStartDate] = useState(searchParams.get('startDate') || moment().subtract(14, 'days').format('YYYY-MM-DD'));
+  const [endDate, setEndDate] = useState(searchParams.get('endDate') || moment().format('YYYY-MM-DD'));
+  const [fetchTrigger, setFetchTrigger] = useState(0);
 
-  // Fetch projects for dropdown
-  const { data: projectsData, loading: projectsLoading, error: projectsError } = useFetchData(
+  const { data: projectsData, loading: projectsLoading } = useFetchData(
     user ? API_PATHS.PROJECTS.GET_ALL_PROJECTS : null,
     { initialData: [], skip: !user }
   );
 
-  // Fetch burndown data
   const { data: burndownData, loading: burndownLoading, error: burndownError } = useFetchData(
     user && projectId && startDate && endDate ? API_PATHS.REPORTS.GET_BURNDOWN_CHART_DATA(projectId, startDate, endDate) : null,
     { initialData: [], skip: !user || !projectId || !startDate || !endDate, dependencies: [fetchTrigger] }
@@ -45,123 +42,125 @@ const BurndownChartPage = () => {
     setFetchTrigger(prev => prev + 1);
   };
 
-  // Prepare data for Recharts
-  const chartData = Array.isArray(burndownData) ? burndownData.map(dataPoint => ({
-    date: new Date(dataPoint.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    'Remaining Story Points': dataPoint.remainingStoryPoints,
-  })) : [];
+  const chartData = useMemo(() => {
+    if (!burndownData || burndownData.length === 0) return [];
+
+    const totalPoints = burndownData[0]?.remainingStoryPoints || 0;
+    const days = burndownData.length;
+    
+    return burndownData.map((dataPoint, index) => {
+      // Calculate ideal burn
+      const idealBurn = totalPoints - (totalPoints / (days - 1)) * index;
+      
+      return {
+        date: moment(dataPoint.date).format('MMM DD'),
+        'Actual Remaining': dataPoint.remainingStoryPoints,
+        'Ideal Burn': Math.max(0, Math.round(idealBurn * 10) / 10),
+      };
+    });
+  }, [burndownData]);
 
   return (
     <DashboardLayout activeMenu="Reports">
-      <div className="p-4 md:p-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Sprint Burndown Chart</h1>
-
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Filter Burndown Data</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div>
-              <label htmlFor="projectSelect" className="block text-sm font-medium text-gray-700 mb-1">
-                Project <span className="text-red-500">*</span>
-              </label>
-              {projectsLoading ? (
-                <p className="text-gray-500">Loading projects...</p>
-              ) : projectsError ? (
-                <p className="text-red-500">Error loading projects.</p>
-              ) : (
-                <select
-                  id="projectSelect"
-                  value={projectId}
-                  onChange={(e) => setProjectId(e.target.value)}
-                  className="input-field w-full"
-                  required
-                >
-                  <option value="">Select a Project</option>
-                  {projectsData.map((proj) => (
-                    <option key={proj._id} value={proj._id}>
-                      {proj.name}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
-            <div>
-              <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
-                Start Date <span className="text-red-500">*</span>
-              </label>
-              <Input
-                id="startDate"
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
-                End Date <span className="text-red-500">*</span>
-              </label>
-              <Input
-                id="endDate"
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full"
-                required
-              />
-            </div>
-          </div>
-          <Button
-            onClick={handleFetchData}
-            disabled={burndownLoading || !projectId || !startDate || !endDate}
-            variant="primary"
-          >
-            {burndownLoading ? 'Loading Chart...' : 'Generate Chart'}
-          </Button>
+      <div className="p-4 md:p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-gray-900 text-[#2563eb]">Sprint Burndown Report</h1>
         </div>
 
-        {burndownLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <p className="text-gray-500">Loading chart data...</p>
-          </div>
-        ) : burndownError ? (
-          <div className="flex justify-center items-center h-64">
-            <p className="text-red-500">Error: {burndownError.message}</p>
-          </div>
-        ) : burndownData.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-6xl text-gray-300 mb-4">📊</div>
-            <p className="text-gray-500 text-lg">No burndown data available for the selected period.</p>
-            <p className="text-gray-400 text-sm mt-2">Adjust your filters and try again.</p>
-          </div>
-        ) : (
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Burndown Chart</h2>
-            <ResponsiveContainer width="100%" height={400}>
-              <LineChart
-                data={chartData}
-                margin={{
-                  top: 5,
-                  right: 30,
-                  left: 20,
-                  bottom: 5,
-                }}
+        {/* Filters */}
+        <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Select Project</label>
+              <select
+                value={projectId}
+                onChange={(e) => setProjectId(e.target.value)}
+                className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-[#2563eb] outline-none bg-white"
               >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="Remaining Story Points"
-                  stroke="#8884d8"
-                  activeDot={{ r: 8 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+                <option value="">-- Choose Project --</option>
+                {projectsData.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+              <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+              <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+            </div>
+            <div className="md:col-span-3 flex justify-end">
+              <Button 
+                onClick={handleFetchData} 
+                disabled={burndownLoading || !projectId}
+                className="bg-[#2563eb] px-10"
+              >
+                {burndownLoading ? 'Loading...' : 'Generate Report'}
+              </Button>
+            </div>
           </div>
-        )}
+        </div>
+
+        {/* Chart Section */}
+        <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 min-h-[500px] flex flex-col">
+          <h2 className="text-xl font-semibold text-gray-800 mb-6">Burndown Velocity</h2>
+          
+          {burndownError ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-red-500">
+              <p>Failed to load burndown data.</p>
+              <p className="text-sm">{burndownError.message}</p>
+            </div>
+          ) : burndownLoading ? (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2563eb]"></div>
+            </div>
+          ) : chartData.length > 0 ? (
+            <div className="flex-1 w-full h-[400px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey="date" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: '#9ca3af', fontSize: 12 }} 
+                    dy={10}
+                  />
+                  <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: '#9ca3af', fontSize: 12 }}
+                  />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Legend verticalAlign="top" align="right" height={36} iconType="circle" />
+                  <Line 
+                    type="monotone" 
+                    dataKey="Ideal Burn" 
+                    stroke="#d1d5db" 
+                    strokeDasharray="5 5" 
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="Actual Remaining" 
+                    stroke="#2563eb" 
+                    strokeWidth={3} 
+                    dot={{ r: 4, fill: '#2563eb', strokeWidth: 2, stroke: '#fff' }}
+                    activeDot={{ r: 6, strokeWidth: 0 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+              <p className="text-lg">No data to display</p>
+              <p className="text-sm">Select a project and date range to view the burndown chart.</p>
+            </div>
+          )}
+        </div>
       </div>
     </DashboardLayout>
   );

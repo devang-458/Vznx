@@ -33,11 +33,15 @@ export const API_PATHS = {
     ISSUES: {
         GET_ISSUES_BY_PROJECT: (projectId) => `/api/projects/${projectId}/issues`,
         UPDATE_ISSUE_STATUS: (issueId) => `/api/issues/${issueId}/status`,
+        UPDATE_ISSUE_ASSIGNEE: (issueId) => `/api/issues/${issueId}/assignee`,
         AI_CREATE: "/api/issues/ai-create",
         GET_ISSUE_BY_ID: (issueId) => `/api/issues/${issueId}`,
         DELETE_ISSUE: (issueId) => `/api/issues/${issueId}`,
         GENERATE_SUBTASKS: (issueId) => `/api/issues/${issueId}/generate-subtasks`,
         CREATE_ISSUE: "/api/issues",
+    },
+    INSIGHTS: {
+        GET_ALL: "/api/insights"
     },
     ANALYTICS: {
         GET_INSIGHTS: "/api/analytics/insights",

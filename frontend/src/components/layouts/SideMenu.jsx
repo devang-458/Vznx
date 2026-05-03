@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { SIDE_MENU_DATA, SIDE_MENU_USER_DATA } from '../../utils/data';
 import image from "../../assets/images/user.png";
 
-
 const SideMenu = ({ activeMenu }) => {
   const { user, clearUser } = useContext(UserContext);
   const [sideMenuData, setSideMenuData] = useState([]);
@@ -31,46 +30,41 @@ const SideMenu = ({ activeMenu }) => {
   }, [user]);
 
   return (
-    <div className="w-64  bg-white border-r border-gray-200/50 sticky top-0 z-20 flex flex-col">
+    <div className="w-64 bg-white border-r border-slate-100 h-full flex flex-col pt-8">
       {/* Profile Section */}
-      <div className="flex-row justify-evenly items-center mb-7 mx-4 pt-5 shrink-0 flex ">
+      <div className="flex items-center gap-4 px-6 mb-10">
         <div className="relative">
           <img
-            src={user[0]?.profileImageUrl ? user.profileImageUrl : image}
+            src={user?.profileImageUrl || image}
             alt="Profile"
-            className="w-20 h-20  bg-slate-400 rounded-full object-cover"
+            className="w-14 h-14 rounded-2xl object-cover shadow-sm"
           />
         </div>
 
-        <div>
-          {user?.role === 'admin' && (
-            <div className="text-xs font-medium text-white bg-primary px-3 py-0.5 rounded mt-1">
-              Admin
-            </div>
-          )}
-
-          <h5 className="text-gray-950 text-lg font-medium leading-6 mt-3">
-            {user?.name || ''}
+        <div className="overflow-hidden">
+          <h5 className="text-slate-900 font-bold text-sm truncate">
+            {user?.name || 'User'}
           </h5>
-          <p className="text-xs text-gray-500">{user?.email || ''}</p>
+          <p className="text-xs text-slate-400 font-medium truncate">{user?.role || 'Member'}</p>
         </div>
       </div>
 
-      {/* Menu Items - Scrollable */}
-      <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden pr-2 pb-14  scroll-smooth max-h-[calc(100vh-150px)]">
+      {/* Menu Items */}
+      <div className="flex flex-col flex-1 px-4 space-y-1">
         {sideMenuData.map((item, index) => {
           const Icon = item.icons;
+          const isActive = activeMenu === item.label;
           return (
             <button
               key={item.id || index}
               onClick={() => handleClick(item.path)}
-              className={`w-full flex items-center gap-4 text-md font-semibold py-3 px-6 mb-1 transition-colors duration-200 shrink-0
-                ${activeMenu === item.label
-                  ? 'text-blueprint-blue bg-light-gray border-r-4 border-blueprint-blue'
-                  : 'text-dark-gray hover:bg-light-gray hover:text-blueprint-blue'
+              className={`w-full flex items-center gap-3.5 text-sm font-semibold py-3 px-4 rounded-xl transition-all duration-200
+                ${isActive
+                  ? 'text-blue-600 bg-blue-50/50'
+                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                 }`}
             >
-              {Icon ? <Icon className="text-xl" /> : null}
+              {Icon && <Icon className={`text-lg ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />}
               {item.label}
             </button>
           );

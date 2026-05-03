@@ -13,11 +13,11 @@ const Button = ({
   const baseStyles = 'font-medium rounded-lg transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center justify-center'; // Added flex, items-center, justify-center
 
   const variantStyles = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
-    secondary: 'bg-gray-200 text-gray-700 hover:bg-gray-300 focus:ring-gray-500',
+    primary: 'bg-primary text-white hover:bg-[#EA580C] focus:ring-primary shadow-sm',
+    secondary: 'bg-zinc-200 text-zinc-700 hover:bg-zinc-300 focus:ring-zinc-500',
     danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-    outline: 'border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-500',
-    ghost: 'text-gray-700 hover:bg-gray-100 focus:ring-gray-500',
+    outline: 'border border-zinc-300 text-zinc-700 hover:bg-zinc-50 focus:ring-zinc-500',
+    ghost: 'text-zinc-700 hover:bg-zinc-100 focus:ring-zinc-500',
   };
 
   const sizeStyles = {

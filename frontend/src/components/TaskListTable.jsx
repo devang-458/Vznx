@@ -1,32 +1,33 @@
 import React from 'react'
 import moment from 'moment/moment';
 import { IoPencil, IoTrash } from 'react-icons/io5';
+import { LuSquareArrowRight } from 'react-icons/lu';
 import { useNavigate } from 'react-router-dom';
 import Button from './layouts/Button';
 
-// Assuming props are { tableData, onDelete, showActions }
-const TaskListTable = ({ tableData, onDelete, showActions, userRole }) => {
+const TaskListTable = ({ tableData, onDelete, showActions, userRole, onRowClick }) => {
     const navigate = useNavigate();
 
     const getStatusBadgeColor = (status) => {
         switch (status) {
-            case 'Completed': return 'bg-green-100 text-green-500 border border-green-200';
-            case 'Pending': return 'bg-purple-100 text-purple-500 border border-purple-200';        
-            case 'In Progress': return 'bg-cyan-100 text-cyan-500 border border-cyan-200';
-            default: return 'bg-gray-100 text-gray-500 border border-gray-200';
+            case 'Completed': return 'bg-emerald-100 text-emerald-600';
+            case 'Pending': return 'bg-indigo-100 text-indigo-600';        
+            case 'In Progress': return 'bg-sky-100 text-sky-600';
+            default: return 'bg-gray-100 text-gray-600';
         }
     };
 
     const getPriorityBadgeColor = (priority) => {
         switch (priority) {
-            case "High": return 'bg-red-100 text-red-500 border border-red-200';
-            case "Medium": return 'bg-orange-100 text-orange-500 border border-orange-200';
-            case "Low": return 'bg-green-100 text-green-500 border border-green-200';
-            default: return 'bg-gray-100 text-gray-500 border border-gray-200';
+            case "High": return 'text-rose-600';
+            case "Medium": return 'text-amber-600';
+            case "Low": return 'text-emerald-600';
+            default: return 'text-gray-600';
         }
     }
 
-    const handleEdit = (taskId) => {
+    const handleEdit = (e, taskId) => {
+        e.stopPropagation();
         if (userRole === 'admin') {
             navigate(`/admin/create-task?taskId=${taskId}`);
         } else {
@@ -34,79 +35,90 @@ const TaskListTable = ({ tableData, onDelete, showActions, userRole }) => {
         }
     };
 
+    const handleDelete = (e, taskId) => {
+        e.stopPropagation();
+        if (onDelete) onDelete(taskId);
+    };
+
     return (
-        <div className='overflow-x-auto p-0 rounded-lg mt-3'>
-            <table className='min-w-full divide-y divide-gray-200'>
+        <div className='w-full'>
+            <table className='w-full border-separate border-spacing-y-2'>
                 <thead>
-                    <tr className='text-left bg-gray-50'>
-                        <th className='py-3 px-4 text-gray-800 font-medium text-xs uppercase tracking-wider'>Name</th>
-                        <th className='py-3 px-4 text-gray-800 font-medium text-xs uppercase tracking-wider'>Status</th>
-                        <th className='py-3 px-4 text-gray-800 font-medium text-xs uppercase tracking-wider'>Priority</th>
-                        <th className='py-3 px-4 text-gray-800 font-medium text-xs uppercase tracking-wider hidden md:table-cell'>Created On</th>
+                    <tr className='text-left'>
+                        <th className='pb-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]'>Deliverable</th>
+                        <th className='pb-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]'>Status</th>
+                        <th className='pb-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]'>Priority</th>
+                        <th className='pb-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] hidden md:table-cell'>Timeline</th>
                         {showActions && (
-                            <th className='py-3 px-4 text-gray-800 font-medium text-xs uppercase tracking-wider'>Actions</th>
+                            <th className='pb-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] text-right'>Actions</th>
                         )}
                     </tr>
                 </thead>
-                <tbody className='bg-white divide-y divide-gray-200'>
-                    {/* FIX: Using implicit return () for map function */}
-                    {tableData && tableData.length > 0 && tableData.map((task) => (
-                        <tr key={task._id} className='hover:bg-gray-50'>
-                            <td className='py-3 px-4 text-gray-700 text-sm line-clamp-1 max-w-xs'>  
-                                {task.title}
+                <tbody>
+                    {tableData && tableData.length > 0 ? tableData.map((task) => (
+                        <tr 
+                            key={task._id} 
+                            onClick={() => onRowClick && onRowClick(task)}
+                            className='group bg-white hover:bg-gray-50/80 transition-all cursor-pointer'
+                        >
+                            <td className='py-4 px-4 rounded-l-2xl border-y border-l border-gray-100 group-hover:border-blue-100'>  
+                                <p className='text-sm font-bold text-gray-800 group-hover:text-blue-600 transition-colors truncate max-w-[200px] md:max-w-xs'>
+                                    {task.title}
+                                </p>
                             </td>
-                            {/* FIX: Using <td> tag */}
-                            <td className="py-3 px-4">
-                                <span className={`px-2 py-1 text-xs font-semibold rounded-full inline-block ${getStatusBadgeColor(task.status)}`}>
+                            <td className="py-4 px-4 border-y border-gray-100 group-hover:border-blue-100">
+                                <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-tight rounded-lg inline-block ${getStatusBadgeColor(task.status)}`}>
                                     {task.status}
                                 </span>
                             </td>
-                            {/* FIX: Using <td> tag */}
-                            <td className="py-3 px-4">
-                                <span className={`px-2 py-1 text-xs font-semibold rounded-full inline-block ${getPriorityBadgeColor(task.priority)}`}>
-                                    {task.priority}
-                                </span>
+                            <td className="py-4 px-4 border-y border-gray-100 group-hover:border-blue-100">
+                                <div className='flex items-center gap-1.5'>
+                                    <div className={`w-1.5 h-1.5 rounded-full ${
+                                        task.priority === 'High' ? 'bg-rose-500' : 
+                                        task.priority === 'Medium' ? 'bg-amber-500' : 'bg-emerald-500'
+                                    }`} />
+                                    <span className={`text-xs font-bold ${getPriorityBadgeColor(task.priority)}`}>
+                                        {task.priority}
+                                    </span>
+                                </div>
                             </td>
-                            {/* FIX: Using <td> tag */}
-                            <td className="py-3 px-4 text-gray-700 text-xs text-nowrap hidden md:table-cell">
-                                {task.createdAt ? moment(task.createdAt).format('Do MMM YYYY') : 'N/A'}
+                            <td className="py-4 px-4 border-y border-gray-100 group-hover:border-blue-100 text-gray-500 text-[11px] font-bold hidden md:table-cell">
+                                {task.createdAt ? moment(task.createdAt).format('MMM D, YYYY') : 'N/A'}
                             </td>
 
-                            {showActions && (
-                                <td className="py-3 px-4 text-sm text-gray-500 whitespace-nowrap">  
-                                    <div className='flex items-center gap-3'>
-                                        {/* Edit Button */}
+                            {showActions ? (
+                                <td className="py-4 px-4 rounded-r-2xl border-y border-r border-gray-100 group-hover:border-blue-100 text-right">  
+                                    <div className='flex items-center justify-end gap-1'>
                                         <Button
-                                            onClick={() => handleEdit(task._id)}
+                                            onClick={(e) => handleEdit(e, task._id)}
                                             variant="ghost"
                                             size="sm"
-                                            className='text-blue-600 hover:text-blue-900 hover:bg-blue-50 p-2 rounded transition-colors'
-                                            title='Edit Task'
+                                            className='text-gray-400 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-xl transition-all'
                                         >
-                                            <IoPencil className='w-4 h-4' />
+                                            <IoPencil className='w-3.5 h-3.5' />
                                         </Button>
-
-                                        {/* Delete Button: Only shown if the onDelete function is passed (i.e., for Admin) */}
                                         {onDelete && (
                                             <Button
-                                                onClick={() => onDelete(task._id)}
+                                                onClick={(e) => handleDelete(e, task._id)}
                                                 variant="ghost"
                                                 size="sm"
-                                                className='text-red-600 hover:text-red-900 hover:bg-red-50 p-2 rounded transition-colors'
-                                                title='Delete Task'
+                                                className='text-gray-400 hover:text-rose-600 hover:bg-rose-50 p-2 rounded-xl transition-all'
                                             >
-                                                <IoTrash className='w-4 h-4' />
+                                                <IoTrash className='w-3.5 h-3.5' />
                                             </Button>
                                         )}
                                     </div>
                                 </td>
+                            ) : (
+                                <td className="py-4 px-4 rounded-r-2xl border-y border-r border-gray-100 group-hover:border-blue-100 text-right">
+                                    <LuSquareArrowRight className='inline-block text-gray-300 group-hover:text-blue-600 transition-colors' />
+                                </td>
                             )}
                         </tr>
-                    ))}
-                    {!tableData || tableData.length === 0 && (
+                    )) : (
                         <tr>
-                            <td colSpan={showActions ? 5 : 4} className="text-center py-6 text-gray-500">
-                                No tasks found.
+                            <td colSpan={showActions ? 5 : 4} className="text-center py-12 text-gray-400 italic text-sm">
+                                No deliverables found in this stream.
                             </td>
                         </tr>
                     )}
